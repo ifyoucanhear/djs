@@ -42,4 +42,5 @@ myBot.login("email", "password", function(e) {
 ## todo
 
 * documentação
+* melhor reação para erros
 * armazenamento de novos servidores e canais
