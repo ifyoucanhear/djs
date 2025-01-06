@@ -1,1 +1,27 @@
-node_modules/
+### node ###
+# logs
+logs
+*.log
+
+# dados de runtime
+pids
+*.pid
+*.seed
+
+# diretório para bibliotecas instrumentadas geradas pelo jscoverage/jscover
+lib-cov
+
+# diretório de cobertura utilizado for ferramentas como o istanbul
+coverage
+
+# armazenamento intermediário grunt
+.grunt
+
+# configuração node-waf
+.lock-wscript
+
+# addons binários compilados
+build/Release
+
+# diretório de dependências
+node_modules
