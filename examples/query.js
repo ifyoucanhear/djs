@@ -20,7 +20,7 @@ bot.on("message", function(message) {
 
         // obtém o primeiro argumento especificamente, onde contenha
         // o nome de usuário a ser queriado
-        var username = arguments[1];
+        var username = arguments.slice(1).join(" ");
 
         // deixa o handler de evento a não ser que o usuário exista
         if (!username) {
