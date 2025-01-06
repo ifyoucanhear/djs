@@ -65,7 +65,7 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
         });
 }
 
-exports.Client.prototype.login = function(email, password, cb) {
+exports.Client.prototype.login = function(email, password) {
     var client = this;
 
     var details = {
@@ -257,12 +257,12 @@ exports.Client.prototype.channelFromId = function(id) {
 }
 
 exports.Client.prototype.getChannelLogs = function(channel, amount, cb) {
-    amount = amount + 1 || 0;
+    amount = amount || 0;
 
     var client = this;
 
     request
-        .get(Endpoints.CHANNELS + "/" + channel.id + "/messages?limit="+amount)
+        .get(Endpoints.CHANNELS + "/" + channel.id + "/messages?limit=" + amount)
         .set("authorization", client.token)
         .end(function(err, res) {
             if (err) {
@@ -276,8 +276,6 @@ exports.Client.prototype.getChannelLogs = function(channel, amount, cb) {
             for(item of res.body){
                 datList.add( new Message(item, channel) );
             }
-
-            datList.removeIndex(0);
 
             cb(datList);
         });
