@@ -13,32 +13,36 @@ npm install discord.js
 ## example usage
 
 ```js
-var Discord = require("discord.js");
-var myBot = new Discord.Client();
+/**
+ * código de exemplo que mostra como o bot conecta na conta discord e
+ * escuta pelas mensagens, enviando outras de volta
+ * 
+ * ele responde com "pong" para cada mensagem "ping"
+ */
 
-myBot.login("email", "password", function(e) {
-    if (e) {
-        console.log("não foi possível iniciar sua sessão");
+var Discord = require("../");
 
-        return;
-    }
+// criação do bot
+var bot = new Discord.Client();
 
-    myBot.on("disconnected", function() {
-        console.log("desconectado");
+// logando o bot com um email e senha de exemplo
+bot.login("test@test.com", "password123456");
 
-        process.exit(0);
-    });
+// o evento "ready" é alertado quando o bot for conectado com sucesso
+// ao discord e estiver pronto para ser utilizado
+bot.on("ready", function() {
+    console.log("bot conectado com sucesso");
+});
 
-    myBot.on("ready", function() {
-        console.log("tudo pronto");
-    });
-    
-    myBot.on("message", function(message) {
-        if (message.content === "ping") {
-            myBot.sendMessage(message.channel, "pong");
-        }
-    })
-})
+// adição de um listener para o evento "message"
+bot.on("message", function(message) {
+	// acessa o conteúdo da mensagem como uma string;
+	// se valer "ping", então o bot responderá com "pong"
+	if (message.content === "ping") {
+		// envia a mensagem "pong" no canal onde a mensagem foi enviada
+		this.sendMessage(message.channel, "pong");
+	}
+});
 ```
 
 ## todo
