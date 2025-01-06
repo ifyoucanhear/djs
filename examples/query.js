@@ -4,14 +4,20 @@
  * do usuário fornecido dentre as últimas 100 mensagens do canal
  */
 
-var Discord = require("discord.js");
+var Discord = require("../");
 var bot = new Discord.Client();
 
 bot.login("test@test.com", "password123456");
 
+// o evento "ready" é alertado quando o bot for conectado com sucesso
+// ao discord e estiver pronto para ser utilizado
+bot.on("ready", function() {
+    console.log("bot conectado com sucesso");
+});
+
 bot.on("message", function(message) {
-    // reagir para todas as mensagens cujo conteúdo seja "$query"
-    if (message.content.startsWith("$query")) {
+    // reage para todas as mensagens cujo conteúdo seja "$query"
+    if (message.content.split(" ")[0] === "$query") {
         // obtém o canal para quais os logs devem ser acessados
         var channel = message.channel;
 

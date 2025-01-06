@@ -78,10 +78,10 @@ exports.Client.prototype.login = function(email, password) {
         .send(details)
         .end(function(err, res) {
             if (!res.ok) {
-                client.triggerEvent("disconnected", {
+                client.triggerEvent("disconnected", [{
                     reason: "falha ao iniciar a sessão",
                     error: err
-                });
+                }]);
             } else {
                 client.token = res.body.token;
                 client.loggedIn = true;
@@ -96,10 +96,10 @@ exports.Client.prototype.connectWebsocket = function(cb) {
     this.websocket = new WebSocket(Endpoints.WEBSOCKET_HUB);
 
     this.websocket.onclose = function(e) {
-        client.triggerEvent("disconnected", {
+        client.triggerEvent("disconnected", [{
             reason: "websocket desconectado",
             error: e
-        });
+        }]);
     };
 
     this.websocket.onmessage = function(e) {
@@ -215,26 +215,58 @@ exports.Client.prototype.createServer = function(details, cb) {
 }
 
 exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions) {
+    options = options || {};
+
     var cb = cb || function() {};
 
-    for (mention in _mentions) {
-        _mentions[mention] = _mentions[mention].id;
-    }
+    if ( _mentions === false ) {
+		// mentions é falso
+		_mentions = [];
+	} else if (_mentions === true || _mentions === "auto" || _mentions == null || _mentions == undefined) {
+		_mentions = [];
 
-    var client = this;
+		var mentionsArray = message.match(/<[^>]*>/g) || [];
 
-    var details = {
-        content: message.substring(0, 2000),
-        mentions: _mentions || []
-    };
+		for (mention of mentionsArray) {
+			_mentions.push(mention.substring(2, mention.length - 1));
+		}
 
-    request
-        .post(Endpoints.CHANNELS + "/" + channel.id + "/messages")
-        .set("authorization", client.token)
-        .send(details)
-        .end(function(err, res) {
-            cb(new Message(res.body, client.channelFromId(res.body.channel_id)));
-        });
+	} else if (_mentions instanceof Array) {
+		// menções específicas
+		for (mention in _mentions) {
+			_mentions[mention] = _mentions[mention].id;
+		}
+	} else {}
+
+	var client = this;
+
+	var details = {
+		content: message.substring(0, 2000),
+		mentions: _mentions || []
+	};
+
+	request
+		.post(Endpoints.CHANNELS + "/" + channel.id + "/messages")
+		.set("authorization", client.token)
+		.send(details)
+		.end(function(err, res) {
+
+			if(err) {
+				cb(err);
+
+				return;
+			}
+
+			var msg = new Message(res.body, client.channelFromId(res.body.channel_id));
+
+			if (options.selfDestruct) {
+				setTimeout(function() {
+					client.deleteMessage(msg);
+				}, options.selfDestruct);
+			}
+
+			cb( msg );
+		});
 }
 
 exports.Client.prototype.deleteMessage = function(message) {
