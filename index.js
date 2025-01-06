@@ -95,8 +95,8 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 
     this.websocket = new WebSocket(Endpoints.WEBSOCKET_HUB);
 
-    this.websocket.onclose = function() {
-        client.triggerEvent("disconnected");
+    this.websocket.onclose = function(e) {
+        client.triggerEvent("disconnected", [e]);
     };
 
     this.websocket.onmessage = function(e) {
@@ -139,6 +139,10 @@ exports.Client.prototype.connectWebsocket = function(cb) {
                     var message = new Message(data, channel);
 
                     client.triggerEvent("message", [message]);
+                } else if (dat.t === "PRESENCE_UPDATE") {
+                    var data = dat.d;
+
+                    client.triggerEvent("presence", [new User(data.user), data.status, client.serverList.filter("id", data.guild_id, true)]);
                 }
 
                 break;
@@ -167,8 +171,8 @@ exports.Client.prototype.connectWebsocket = function(cb) {
         };
 
         connDat.d.properties = {
-            "$os": "Windows",
-            "$browser": "Chrome",
+            "$os": "DiscordJS",
+            "$browser": "Dischromecord",
             "$device": "discord.js",
             "$referrer": "",
             "$referring_domain": ""
@@ -228,27 +232,15 @@ exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions)
 }
 
 exports.Client.prototype.deleteMessage = function(message) {
+    if (!message)
+        return false;
+
     var client = this;
 
     request
         .del(Endpoints.CHANNELS + "/" + message.channel.id + "/messages/" + message.id)
         .set("authorization", client.token)
         .end(function(err, res) {});
-}
-
-exports.Client.prototype.logFile = function(name, url) {
-    var fs = require("fs");
-
-    request
-        .get(url)
-        .set("authorization", this.token)
-        .end(function(err, res){
-            fs.writeFile("./log/"+name+".json", JSON.stringify(res.body, null, "\t"), function(err) {
-                if (err) {
-                    return console.log(err);
-                }
-            });
-        });
 }
 
 exports.Client.prototype.channelFromId = function(id) {
@@ -266,7 +258,13 @@ exports.Client.prototype.getChannelLogs = function(channel, amount, cb) {
     request
         .get(Endpoints.CHANNELS + "/" + channel.id + "/messages?limit="+amount)
         .set("authorization", client.token)
-        .end(function(err, res){
+        .end(function(err, res) {
+            if (err) {
+                cb(new List("id"));
+
+                return;
+            }
+
             var datList = new List("id");
 
             for(item of res.body){
