@@ -1,6 +1,6 @@
 {
   "name": "djs",
-  "version": "2.0.2",
+  "version": "2.1.1",
   "description": "a js interface for the discord api.",
   "main": "index.js",
   "scripts": {
