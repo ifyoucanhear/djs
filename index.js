@@ -5,6 +5,7 @@ var Message = require("./lib/message.js").Message;
 var User = require("./lib/user.js").User;
 var Channel = require("./lib/channel.js").Channel;
 var List = require("./lib/list.js").List;
+var Invite = require( "./lib/invite.js" ).Invite;
 var WebSocket = require("ws");
 
 exports.Client = function(options) {
@@ -134,7 +135,7 @@ exports.Client.prototype.connectWebsocket = function(cb) {
                         }, _server.members);
                     }
 
-                    client.user = new User(data.user.username, data.user.id, data.user.discriminator, data.user.avatar);
+                    client.user = new User(data.user);
                 } else if (dat.t === "MESSAGE_CREATE") {
                     var data = dat.d;
 
@@ -198,8 +199,13 @@ exports.Client.prototype.logout = function() {
         });
 }
 
-exports.Client.prototype.createServer = function(details, cb) {
+exports.Client.prototype.createServer = function(_name, _region, cb) {
     var client = this;
+
+    var details = {
+        name: _name,
+        region: _region
+    };
 
     request
         .post(Endpoints.SERVERS)
@@ -209,9 +215,52 @@ exports.Client.prototype.createServer = function(details, cb) {
             if (!res.ok) {
                 cb(err);
             } else {
-                cb(new Server(res.body));
+                client.cacheServer(res.body.id, function(server) {
+                    cb(null, server);
+                });
             }
         });
+}
+
+exports.Client.prototype.leaveServer = function(server, cb) {
+	var client = this;
+
+	request
+		.del(Endpoints.SERVERS + "/" + server.id)
+		.set("authorization", client.token)
+		.end(function(err, res) {
+			if (!res.ok) {
+				cb(err);
+			} else {
+				cb(null);
+			}
+		});
+}
+
+exports.Client.prototype.createInvite = function(channel, options, cb) {
+	var client = this;
+	var options = options || {};
+
+	if (channel instanceof Server) {
+		channel = channel.getDefaultChannel();
+	}
+
+	options.max_age = options.max_age || 0;
+	options.max_uses = options.max_uses || 0;
+	options.temporary = options.temporary || false;
+	options.xkcdpass = options.xkcd || false;
+
+	request
+		.post(Endpoints.CHANNELS + "/" + channel.id + "/invites")
+		.set("authorization", client.token )
+		.send(options)
+		.end(function(err, res) {
+			if (!res.ok) {
+				cb(err);
+			} else {
+				cb(false, new Invite(res.body));
+			}
+		})
 }
 
 exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions) {
