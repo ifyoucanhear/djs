@@ -232,6 +232,8 @@ exports.Client.prototype.leaveServer = function(server, cb) {
 			if (!res.ok) {
 				cb(err);
 			} else {
+                client.serverList.removeElement(server);
+                
 				cb(null);
 			}
 		});
