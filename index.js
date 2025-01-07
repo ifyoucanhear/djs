@@ -59,7 +59,7 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
                 dat.region,
                 dat.owner_id,
                 dat.name,
-                dat.roles[0].id,
+                id,
                 members || dat.members,
                 dat.icon,
                 dat.afk_timeout,
@@ -432,7 +432,7 @@ exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions)
 		});
 }
 
-exports.Client.prototype.deleteMessage = function(message) {
+exports.Client.prototype.deleteMessage = function(message, cb) {
     if (!message)
         return false;
 
@@ -441,7 +441,7 @@ exports.Client.prototype.deleteMessage = function(message) {
     request
         .del(Endpoints.CHANNELS + "/" + message.channel.id + "/messages/" + message.id)
         .set("authorization", client.token)
-        .end(function(err, res) {});
+        .end(cb);
 }
 
 exports.Client.prototype.channelFromId = function(id) {
