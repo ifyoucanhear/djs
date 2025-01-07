@@ -4,20 +4,14 @@
  * do usuário fornecido dentre as últimas 100 mensagens do canal
  */
 
-var Discord = require("../");
+var Discord = require("discord.js");
 var bot = new Discord.Client();
 
 bot.login("test@test.com", "password123456");
 
-// o evento "ready" é alertado quando o bot for conectado com sucesso
-// ao discord e estiver pronto para ser utilizado
-bot.on("ready", function() {
-    console.log("bot conectado com sucesso");
-});
-
 bot.on("message", function(message) {
     // reage para todas as mensagens cujo conteúdo seja "$query"
-    if (message.content.split(" ")[0] === "$query") {
+    if (message.content.startsWith("$query")) {
         // obtém o canal para quais os logs devem ser acessados
         var channel = message.channel;
 
@@ -37,10 +31,18 @@ bot.on("message", function(message) {
 
         // a função getchannellogs() obtém o canal que deve ser acessado,
         // a quantidade de mensagens e um callback para seus argumentos
-        bot.getChannelLogs(channel, 100, function(messageList) {
+        bot.getChannelLogs(channel, 100, function(error, messageList) {
             // filter() obtém três argumentos, a chave a ser filtrada (nesse
             // caso o nome de usuário, "username"), o valor a ser observado
             // (true) ou uma lista de todos os encontros (false)
+
+            // checa se há algum erro, caso não tenha, será nulo
+            if (error) {
+                bot.sendMessage(channel, "ocorreu um erro ao recuperar os logs...");
+
+                return;
+            }
+
             var message = messageList.filter("username", username, true);
 
             // apenas continuar caso a mensagem tenha sido encontrada
