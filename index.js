@@ -17,11 +17,16 @@ exports.Client = function(options) {
     this.events = {};
     this.user = null;
 
+    this.ready = false;
     this.serverList = new List("id");
     this.PMList = new List("id");
 }
 
 exports.Client.prototype.triggerEvent = function(event, args) {
+    if (!this.ready) { // caso ainda não tenha sido nem carregado, não fazer nada
+        return;
+    }
+
     if (this.events[event]) {
         this.events[event].apply(this, args);
     } else {
@@ -144,7 +149,9 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 						client.cacheServer(sID, function(server) {
                             cached++;
 
-                            if(cached >= toCache){
+                            if (cached >= toCache) {
+                                client.ready = true;
+                                
                                 client.triggerEvent("ready");
                             }
                         }, _server.members);
