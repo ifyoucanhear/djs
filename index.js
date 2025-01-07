@@ -425,68 +425,79 @@ exports.Client.prototype.getChannelLogs = function(channel, amount, cb) {
         .get(Endpoints.CHANNELS + "/" + channel.id + "/messages?limit=" + amount)
         .set("authorization", client.token)
         .end(function(err, res) {
-            if (err) {
-                cb(new List("id"));
+            if (!res.ok) {
+                cb(err);
 
                 return;
             }
 
             var datList = new List("id");
 
-            for(item of res.body){
-                datList.add( new Message(item, channel) );
+            for (item of res.body) {
+                datList.add(new Message(item, channel));
             }
 
-            cb(datList);
+            cb(null, datList);
         });
 }
 
-exports.Client.prototype.createChannel = function( server, serverName, serverType, cb ) {
+exports.Client.prototype.createChannel = function(server, serverName, serverType, cb) {
 	var client = this;
+
 	request
-		.post( Endpoints.SERVERS + "/" + server.id + "/channels" )
-		.set( "authorization", client.token )
-		.send( {
+		.post(Endpoints.SERVERS + "/" + server.id + "/channels" )
+		.set("authorization", client.token )
+		.send({
 			name: serverName,
 			type: serverType
-		} )
-		.end( function( err, res ) {
-			if ( !res.ok ) {
-				cb( err );
+		})
+		.end(function(err, res) {
+			if (!res.ok) {
+				cb(err);
 			} else {
-				var chann = new Channel( res.body, server );
-				client.serverList.filter( "id", server.id, true ).channels.add( chann );
-				cb( null, chann );
+				var chann = new Channel(res.body, server);
+
+				client.serverList.filter("id", server.id, true).channels.add(chann);
+
+				cb(null, chann);
 			}
-		} );
+		});
 }
+
 exports.Client.prototype.deleteChannel = function( channel, cb ) {
 	var client = this;
+
 	request
-		.del( Endpoints.CHANNELS + "/" + channel.id )
-		.set( "authorization", client.token )
-		.end( function( err, res ) {
-			if ( !res.ok ) {
-				cb( err );
+		.del(Endpoints.CHANNELS + "/" + channel.id)
+		.set("authorization", client.token)
+		.end(function(err, res) {
+			if (!res.ok) {
+				cb(err);
 			} else {
-				client.serverList.filter( "id", channel.server.id, true ).channels.removeElement( channel );
-				client.triggerEvent( "channelDelete", [ channel ] );
-				cb( null );
+				client.serverList.filter("id", channel.server.id, true).channels.removeElement(channel);
+
+				client.triggerEvent("channelDelete", [channel]);
+
+				cb(null);
 			}
-		} );
+		});
 }
-exports.Client.prototype.deleteServer = function( server, cb ) {
+
+exports.Client.prototype.deleteServer = function(server, cb) {
 	var client = this;
+
 	request
-		.del( Endpoints.SERVERS + "/" + server.id )
-		.set( "authorization", client.token )
-		.end( function( err, res ) {
-			if ( !res.ok ) {
-				cb( err );
+		.del(Endpoints.SERVERS + "/" + server.id)
+		.set("authorization", client.token)
+		.end(function(err, res) {
+			if (!res.ok) {
+				cb(err);
 			} else {
-				client.serverList.removeElement( server );
-				client.triggerEvent( "serverDelete", [ server ] );
-				cb( null );
+				client.serverList.removeElement(server);
+
+				client.triggerEvent("serverDelete", [server]);
+
+				cb(null);
 			}
-		} );
+		});
 }
