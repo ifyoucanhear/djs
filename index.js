@@ -9,6 +9,15 @@ var Invite = require( "./lib/invite.js" ).Invite;
 var PMChannel = require("./lib/PMChannel.js").PMChannel;
 var WebSocket = require("ws");
 
+exports.Endpoints = Endpoints;
+exports.Server = Server;
+exports.Message = Message;
+exports.User = User;
+exports.Channel = Channel;
+exports.List = List;
+exports.Invite = Invite;
+exports.PMChannel = PMChannel;
+
 exports.isUserID = function(id) {
     return ((id + "").length === 17 && !isNaN(id));
 }
@@ -192,32 +201,38 @@ exports.Client.prototype.connectWebsocket = function(cb) {
                     var data = dat.d;
 
                     client.triggerEvent("presence", [new User(data.user), data.status, client.serverList.filter("id", data.guild_id, true)]);
-                } else if ( dat.t === "GUILD_DELETE" ) {
-					var deletedServer = client.serverList.filter( "id", dat.d.id, true );
-					if ( deletedServer ) {
-						client.triggerEvent( "serverDelete", [ deletedServer ] );
+                } else if (dat.t === "GUILD_DELETE") {
+					var deletedServer = client.serverList.filter("id", dat.d.id, true);
+
+					if (deletedServer) {
+						client.triggerEvent("serverDelete", [deletedServer]);
 					}
-				} else if ( dat.t === "CHANNEL_DELETE" ) {
-					var delServer = client.serverList.filter( "id", dat.d.guild_id, true );
-					if ( delServer ) {
-						var channel = delServer.channels.filter( "id", dat.d.id, true );
-						if ( channel ) {
-							client.triggerEvent( "channelDelete", [ channel ] );
+				} else if (dat.t === "CHANNEL_DELETE") {
+					var delServer = client.serverList.filter("id", dat.d.guild_id, true);
+
+					if (delServer) {
+						var channel = delServer.channels.filter("id", dat.d.id, true);
+
+						if (channel) {
+							client.triggerEvent("channelDelete", [channel]);
 						}
 					}
-				} else if ( dat.t === "GUILD_CREATE" ) {
-					if ( !client.serverList.filter( "id", dat.d.id, true ) ) {
-						client.cacheServer( dat.d.id, function( server ) {
-							client.triggerEvent( "serverJoin", [ server ] );
-						}, dat.d.members );
+				} else if (dat.t === "GUILD_CREATE") {
+					if (!client.serverList.filter("id", dat.d.id, true)) {
+						client.cacheServer(dat.d.id, function(server) {
+							client.triggerEvent("serverJoin", [server]);
+						}, dat.d.members);
 					}
-				} else if ( dat.t === "CHANNEL_CREATE" ) {
-					var srv = client.serverList.filter( "id", dat.d.guild_id, true );
-					if ( srv ) {
-						if ( !srv.channels.filter( "id", dat.d.d, true ) ) {
+				} else if (dat.t === "CHANNEL_CREATE") {
+					var srv = client.serverList.filter("id", dat.d.guild_id, true);
+
+					if (srv) {
+						if (!srv.channels.filter("id", dat.d.d, true)) {
 							var chann = new Channel(dat.d, srv);
-							srv.channels.add( new Channel( dat.d, srv ) );
-							client.triggerEvent( "channelCreate", [ chann ] );
+
+							srv.channels.add(new Channel(dat.d, srv));
+
+							client.triggerEvent("channelCreate", [chann]);
 						}
 					}
 				}
@@ -451,6 +466,10 @@ exports.Client.prototype.deleteMessage = function(message, cb) {
 exports.Client.prototype.channelFromId = function(id) {
     var channelList = this.serverList.concatSublists("channels", "id");
     var channel = channelList.filter("id", id, true);
+
+    if (!channel) {
+        channel = this.PMList.filter("id", id, true);
+    }
 
     return channel;
 }
