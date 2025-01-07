@@ -122,6 +122,10 @@ exports.Client.prototype.login = function(email, password) {
 }
 
 exports.Client.prototype.reply = function() {
+    if (arguments[1] instanceof Array) {
+        arguments[1] = arguments[1].join("\n");
+    }
+    
     arguments[1] = arguments[0].author.mention() + ", " + arguments[1];
 
     this.sendMessage.apply(this, arguments);
@@ -373,6 +377,10 @@ exports.Client.prototype.startPM = function( user, message, cb, _mentions, optio
 
 exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions) {
     options = options || {};
+
+    if (message instanceof Array) {
+        message = message.join("\n");
+    }
 
     var thisLoopId = Math.floor(Math.random() * 1000);
 

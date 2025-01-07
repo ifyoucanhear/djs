@@ -2,6 +2,7 @@
 // `require` para `discord.js` e então, rodar `npm install --save
 // discord.js` no mesmo diretório do arquivo. o bot irá rodar
 var Discord = require("../");
+exports.Discord = Discord;
 
 // carregue o arquivo de configuração. caso ainda não tenha, crie
 // um que siga essa estrutura: { "email": "test@test.com", "password":
@@ -68,10 +69,6 @@ bot.on("message", function(message) {
 });
 
 function handleMessage(command, params, message) {
-    var channel = message.channel; // configura a variável de canal para message.channel
-    var sender = message.author; // configura a variável de sender para o autor da mensagem
-    var isPM = (message.channel instanceof Discord.PMChannel); // configura ispm para true se o canal for um canal de mensagem privado
-
     if (Commands[command]) {
         console.log(Authority.getLevel(message.author));
 
