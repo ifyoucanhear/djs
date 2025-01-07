@@ -9,7 +9,7 @@ var Invite = require( "./lib/invite.js" ).Invite;
 var PMChannel = require("./lib/PMChannel.js").PMChannel;
 var WebSocket = require("ws");
 
-exports.prototype.isUserID = function(id) {
+exports.isUserID = function(id) {
     return ((id + "").length === 17 && !isNaN(id));
 }
 
@@ -27,7 +27,7 @@ exports.Client = function(options) {
 }
 
 exports.Client.prototype.triggerEvent = function(event, args) {
-    if (!this.ready && event !== "raw") { // caso ainda não tenha sido nem carregado, não fazer nada
+    if (!this.ready && event !== "raw" && event !== "disconnected") { // caso ainda não tenha sido nem carregado, não fazer nada
         return;
     }
 
