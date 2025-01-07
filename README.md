@@ -10,6 +10,15 @@ the aim of this api is to make it *really* simple to start developing your bots.
 npm install discord.js
 ```
 
+## features
+
+* envie, receba e exclua mensagens de canais _e_ dms! inicia automaticamente uma dm para você
+* criar, excluir e sair de servidores e canais
+* criar convites para servidores
+* menção silenciosa - aciona uma notificação de menção sem realmente @mentioning um usuário
+* obtenha metadados completos sobre usuários, canais e servidores - incluindo avatares
+* obtenha logs ilimitados de canais
+
 ## example usage
 
 ```js
@@ -47,6 +56,5 @@ bot.on("message", function(message) {
 
 ## todo
 
-* documentação
-* melhor reação para erros
-* armazenamento de novos servidores e canais
+* entrar em servidores por meio de convite
+* suporte para stealthy ninja
