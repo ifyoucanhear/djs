@@ -23,7 +23,7 @@ exports.Client = function(options) {
 }
 
 exports.Client.prototype.triggerEvent = function(event, args) {
-    if (!this.ready) { // caso ainda não tenha sido nem carregado, não fazer nada
+    if (!this.ready && event !== "raw") { // caso ainda não tenha sido nem carregado, não fazer nada
         return;
     }
 
@@ -55,7 +55,16 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
         .end(function(err, res) {
             var dat = res.body;
 
-            var server = new Server(dat.region, dat.owner_id, dat.name, dat.roles[0].id, members || dat.members);
+            var server = new Server(
+                dat.region,
+                dat.owner_id,
+                dat.name,
+                dat.roles[0].id,
+                members || dat.members,
+                dat.icon,
+                dat.afk_timeout,
+                dat.afk_channel_id
+            );
 
             request
                 .get(Endpoints.SERVERS + "/" + id + "/channels")
@@ -97,6 +106,12 @@ exports.Client.prototype.login = function(email, password) {
                 client.connectWebsocket();
             }
         });
+}
+
+exports.Client.prototype.reply = function() {
+    arguments[1] = arguments[0].author.mention() + ", " + arguments[1];
+
+    this.sendMessage.apply(this, arguments);
 }
 
 exports.Client.prototype.connectWebsocket = function(cb) {
