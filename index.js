@@ -345,8 +345,17 @@ exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions)
 		}
 	}
 
-    if (channel instanceof Message) {
+    if (channel instanceof Message) { // se o canal for uma mensagem, capturar o canal
         channel = channel.channel;
+    }
+
+    if (typeof channel === 'string' || channel instanceof String || !isNaN(channel)) {
+        // o canal é um id
+        var chanId = channel;
+
+        channel = {
+            id: chanId
+        }
     }
 
     var cb = cb || function() {};
