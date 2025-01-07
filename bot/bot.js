@@ -12,7 +12,7 @@ var BotConfig = require("./config.json");
 var bot = new Discord.Client();
 
 // log o cliente utilizando detalhes de auth no config.json
-bot.login(BotConfig.email, BotConfig.password + "a");
+bot.login(BotConfig.email, BotConfig.password);
 
 console.log("inicializando tudo...");
 
@@ -23,5 +23,12 @@ bot.on("ready", function() {
 
 // quando o bot for desconectado, encerrar tudo
 bot.on("disconnected", function(obj) {
-    console.log("desconectado", obj.reason);
+    // avisar que não pôde ser conectado e então encerrar
+    console.log("desconectado - ", obj.reason);
+
+    process.exit(0);
+});
+
+bot.on("message", function(message) {
+    console.log(message);
 });
