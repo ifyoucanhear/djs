@@ -8,8 +8,20 @@ var Discord = require("../");
 // "password123456" }
 var BotConfig = require("./config.json");
 
+// carrega o arquivo de comandos
+var Commands = require("./commands.js").Commands;
+
+// carrega o handler de autoridade
+var Authority = require("./authority.js");
+
+// inicializar
+Authority.init();
+
 // cria um novo client do discord
 var bot = new Discord.Client();
+
+// um array de prefixos de caracteres únicos que o bot responderá
+var commandPrefixes = ["$", "£", "`"];
 
 // log o cliente utilizando detalhes de auth no config.json
 bot.login(BotConfig.email, BotConfig.password);
@@ -30,5 +42,47 @@ bot.on("disconnected", function(obj) {
 });
 
 bot.on("message", function(message) {
-    console.log(message);
+    // caso a mensagem não comece com um prefixo de comando válido, encerrar
+    if (commandPrefixes.indexOf(message.content.charAt(0)) == -1)
+        return;
+
+    var command = "",
+        params = []; // configura os detalhes da mensagem
+
+    // remove o prefixo do início da mensagem
+    message.content = message.content.substr(1);
+
+    // divide a mensagem por barras. isso retornará em algo mais ou menos
+    // assim: ["comando", "a", "b", "c"]
+    var chunks = message.content.split("/");
+
+    for (key in chunks) { // loop os chunks e aparar eles
+        chunks[key] = chunks[key].trim();
+    }
+
+    command = chunks[0]; // o primeiro parâmetro será o comando
+    params = chunks.slice(1);
+
+    // é menos complicado se terceirizarmos para outra função
+    handleMessage(command, params, message);
 });
+
+function handleMessage(command, params, message) {
+    var channel = message.channel; // configura a variável de canal para message.channel
+    var sender = message.author; // configura a variável de sender para o autor da mensagem
+    var isPM = (message.channel instanceof Discord.PMChannel); // configura ispm para true se o canal for um canal de mensagem privado
+
+    if (Commands[command]) {
+        console.log(Authority.getLevel(message.author));
+
+        if (Authority.getLevel(message.author) >= Commands[command].oplevel) {
+            // o usuário possui autoridade de fazer isso
+            Commands[command].fn(bot, params, message);
+        } else {
+            // o usuário não possui autoridade
+            bot.reply(message, "você não tem a autoridade de realizar isso.");
+        }
+    } else {
+        bot.reply(message, "esse comando não foi encontrado...");
+    }
+}
