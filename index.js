@@ -55,49 +55,89 @@ exports.Client.prototype.off = function(name) {
     this.events[name] = function() {};
 }
 
-exports.Client.prototype.cacheServer = function(id, cb, members) {
-    if (this.serverList.filter("id", id).length > 0) {
-        return;
-    }
+exports.Client.prototype.cacheServer = function(id, cb, members, channelInfo) {
+    console.log("capturando...");
 
     var self = this;
+    var serverInput;
 
-    request
-        .get(Endpoints.SERVERS + "/" + id)
-        .set("authorization", this.token)
-        .end(function(err, res) {
-            var dat = res.body;
+    if (typeof id === 'string' || id instanceof String) {
+        // é um id
+        if (this.serverList.filter("id", id).length > 0) {
+            return;
+        }
 
-            var server = new Server(
-                dat.region,
-                dat.owner_id,
-                dat.name,
-                id,
-                members || dat.members,
-                dat.icon,
-                dat.afk_timeout,
-                dat.afk_channel_id
-            );
+        console.log("teste");
 
-            request
-                .get(Endpoints.SERVERS + "/" + id + "/channels")
-                .set("authorization", self.token)
-                .end(function(err, res) {
-                    if (err) {
-                        throw err;
-                    }
-                    
-                    var channelList = res.body;
+        request
+            .get(Endpoints.SERVERS + "/" + id)
+            .set("authorization", self.token)
+            .end(function(err, res) {
+                if (err) {
+                    throw err;
+                }
 
-                    for(channel of channelList){
-                        server.channels.add(new Channel(channel, server));
-                    }
+                var dat = res.body;
 
-                    self.serverList.add(server);
+                makeServer(dat);
+            });
+    } else {
+        // objetos obtidos por conta da velocidade
+        if (this.serverList.filter("id", id.id).length > 0) {
+            return;
+        }
+        
+        serverInput = id;
 
-                    cb(server);
-                });
-        });
+        id = id.id;
+
+        makeServer(serverInput);
+    }
+
+    function channelsFromHTTP() {
+        request
+            .get(Endpoints.SERVERS + "/" + id + "/channels")
+            .set("authorization", self.token)
+            .end(function(err, res) {
+                if (err) {
+                    throw err;
+                }
+
+                cacheChannels(res.body);
+            });
+    }
+
+    var server;
+
+    function makeServer(dat) {
+        server = new Server(
+            dat.region,
+            dat.owner_id,
+            dat.name,
+            id,
+            members || dat.members,
+            dat.icon,
+            dat.afk_timeout,
+            dat.afk_channel_id
+        );
+
+        console.log(server.id);
+
+        if (!channelInfo)
+            channelsFromHTTP();
+    }
+
+    function cacheChannels(dat) {
+        var channelList = dat;
+
+        for (channel of channelList) {
+            server.channels.add(new Channel(channel, server));
+        }
+
+        self.serverList.add(server);
+
+        cb(server);
+    }
 }
 
 exports.Client.prototype.login = function(email, password) {
