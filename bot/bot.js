@@ -4,8 +4,6 @@
 var Discord = require("../");
 exports.Discord = Discord;
 
-exports.LOL = "ayo";
-
 // carregue o arquivo de configuração. caso ainda não tenha, crie
 // um que siga essa estrutura: { "email": "test@test.com", "password":
 // "password123456" }
@@ -31,9 +29,11 @@ bot.login(BotConfig.email, BotConfig.password);
 
 console.log("inicializando tudo...");
 
+var time = Date.now();
+
 // quando o bot estiver pronto, output no console
 bot.on("ready", function() {
-    console.log("tudo pronto");
+    console.log("pronto em " + (Date.now() - time) + "ms");
 });
 
 // quando o bot for desconectado, encerrar tudo

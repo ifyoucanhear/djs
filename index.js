@@ -83,6 +83,10 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
                 .get(Endpoints.SERVERS + "/" + id + "/channels")
                 .set("authorization", self.token)
                 .end(function(err, res) {
+                    if (err) {
+                        throw err;
+                    }
+                    
                     var channelList = res.body;
 
                     for(channel of channelList){
