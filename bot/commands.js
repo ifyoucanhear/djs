@@ -25,8 +25,11 @@ Commands["echo"] = {
 
     fn: function(bot, params, message) {
         bot.sendMessage(message, params.join(" "), function(err, msg) {
-            if (err)
+            if (err) {
                 bot.sendMessage(message, "não foi possível fazer eco...");
+
+                console.log(err);
+            }
         });
     }
 }
