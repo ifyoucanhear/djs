@@ -82,9 +82,9 @@ Commands["clear"] = {
                     failedCount = 0,
                     todo = logs.length();
 
-                for (message of logs.contents) {
-                    if (message.author.equals(bot.user)) {
-                        bot.deleteMessage(message, function(err) {
+                for (msg of logs.contents) {
+                    if (msg.author.equals(bot.user)) {
+                        bot.deleteMessage(msg, function(err) {
                             todo--;
 
                             if (err)
@@ -94,7 +94,7 @@ Commands["clear"] = {
 
                             if (todo === 0) {
                                 bot.reply(
-                                    message,
+                                    msg,
                                     "feito! " + deletedCount + " mensagem(ns) foram deletadas, com " + failedCount + "erro(s).",
                                     false,
                                     true, {
@@ -202,6 +202,49 @@ Commands["remind"] = {
         function send() {
             bot.sendMessage(message.author, time + " tempo. **" + msg + "**");
         }
+    }
+}
+
+Commands["activity"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var amount = getKey(params, "amount") || getKey(params, "n") || 250;
+        var limit = getKey(params, "limit") || getKey(params, "l") || 10;
+
+        bot.getChannelLogs(message.channel, amount, function(err, logs) {
+            if (err) {
+                bot.reply(message, "erro ao obter logs...");
+            } else {
+                var activity = {}, count = 0;
+
+                for (msg of logs.contents) {
+                    count = logs.length();
+
+                    if (!activity[msg.author.id])
+                        activity[msg.author.id] = 0;
+
+                    activity[msg.author.id]++;
+                }
+
+                var report = "aqui uma lista de atividade na última " + count + "de mensagens: \n\n";
+                var users = {};
+
+                for (id in activity) {
+                    users[id] = message.channel.server.members.filter("id", id, true);
+                }
+
+                activity = Object.keys(activity).sort(function(a, b) {
+                    return activity[a] - activity[b]
+                });
+
+                for (id in activity) {
+                    report += id + " | " + activity[id] + " | **" + Math.round((activity[id] / count) * 100) + "%**.\n";
+                }
+
+                bot.reply(message, report, false, false);
+            }
+        });
     }
 }
 
