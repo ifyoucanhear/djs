@@ -4,6 +4,8 @@
 var Discord = require("../");
 exports.Discord = Discord;
 
+exports.LOL = "ayo";
+
 // carregue o arquivo de configuração. caso ainda não tenha, crie
 // um que siga essa estrutura: { "email": "test@test.com", "password":
 // "password123456" }
@@ -38,6 +40,7 @@ bot.on("ready", function() {
 bot.on("disconnected", function(obj) {
     // avisar que não pôde ser conectado e então encerrar
     console.log("desconectado - ", obj.reason);
+    console.log(obj.error);
 
     process.exit(0);
 });
@@ -70,16 +73,17 @@ bot.on("message", function(message) {
 
 function handleMessage(command, params, message) {
     if (Commands[command]) {
-        console.log(Authority.getLevel(message.author));
-
         if (Authority.getLevel(message.author) >= Commands[command].oplevel) {
             // o usuário possui autoridade de fazer isso
             Commands[command].fn(bot, params, message);
         } else {
             // o usuário não possui autoridade
-            bot.reply(message, "você não tem a autoridade de realizar isso.");
+            bot.reply(message, exports.AUTH_ERROR);
         }
     } else {
-        bot.reply(message, "esse comando não foi encontrado...");
+        bot.reply(message, exports.NOT_FOUND);
     }
 }
+
+exports.AUTH_ERROR = "você não possui autoridade para realizar essa ação...";
+exports.NOT_FOUND = "esse comando não foi encontrado...";

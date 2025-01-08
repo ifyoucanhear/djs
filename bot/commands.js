@@ -1,5 +1,6 @@
 var Authority = require("./authority.js");
-var Discord = require("./bot.js").Discord;
+var BotClass = require("./bot.js");
+var Discord = BotClass.Discord;
 
 Commands = [];
 
@@ -31,7 +32,7 @@ Commands["echo"] = {
 }
 
 Commands["auth"] = {
-    oplevel: 2,
+    oplevel: 0,
 
     fn: function(bot, params, message) {
         var level = getKey(params, "level", "0");
@@ -43,9 +44,11 @@ Commands["auth"] = {
 				bot.reply(message, "esse nível de autoridade é muito alto para você definir.");
 			} else if (user.equals(message.author)) {
 				bot.reply(message, "você não pode alterar seu próprio nível de autoridade.");
-			} else if (authLevel(user) > authLevel(message.author)) {
-				bot.reply(message, "esse usuário tem um nível op mais alto que o seu.");
-			} else {
+			} else if (authLevel(user) >= authLevel(message.author)) {
+				bot.reply(message, "esse usuário tem um nível op mais alto ou igual ao seu.");
+			} else if (level < 0) {
+                bot.reply(message, "esse nível é muito baixo para isso...");
+            } else {
 				setAuthLevel(user, level);
 
 				bot.reply(message, "eu estabeleci a autoridade de " + user.mention() + " para **" + level + "**");
@@ -57,9 +60,17 @@ Commands["auth"] = {
 }
 
 Commands["clear"] = {
-    oplevel: 1,
+    oplevel: 0,
 
     fn: function(bot, params, message) {
+        if (!message.isPM()) {
+            if (authLevel(message.author) < 1) {
+                bot.reply(message, BotClass.AUTH_ERROR);
+
+                return;
+            }
+        }
+
         var initMessage = false,
             cleared = false;
 
@@ -124,16 +135,72 @@ Commands["leave"] = {
     oplevel: 3,
 
     fn: function(bot, params, message) {
+        var silent = hasFlag(params, "s") || hasFlag(params, "silent");
+
         if (message.isPM()) {
-            bot.reply(message, "hmm... não foi possível deixar as pms...");
+            bot.reply(message, "hmm... eu não posso deixar as pms...");
         } else {
-            bot.reply(message, "ok, estou deixando...");
+            if (!silent)
+                bot.reply(message, "ok, deixando...");
 
             bot.leaveServer(message.channel.server, function(err) {
                 if (err) {
-                    bot.reply(message, "ocorreu um erro ao deixar o servidor... que estranho.");
+                    bot.reply(message, "ocorreu um erro ao sair do servidor, que estranho...");
                 }
             });
+        }
+    }
+}
+
+Commands["avatar"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var user = getUser(message, params);
+
+        if (!user.avatar) {
+            bot.sendMessage(message.channel, user.mention() + "não possui um avatar...");
+        } else {
+            bot.reply(message, user.getAvatarURL());
+        }
+    }
+}
+
+Commands["icon"] = {
+    oplevel: 0,
+    
+    fn: function(bot, params, message) {
+        if (message.isPM()) {
+            bot.reply(message, "pms não possui avatar...");
+
+            return;
+        }
+
+        if (!message.channel.server.icon) {
+            bot.reply(message, "esse servidor não possui um ícone...");
+
+            return;
+        }
+
+        bot.reply(message, message.channel.server.getIconURL());
+    }
+}
+
+Commands["remind"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var time = parseInt(getKey(params, "t") || getKey(params, "time")) * 1000 || 21000;
+        var msg = getKey(params, "m") || getKey(params, "msg") || getKey(params, "message");
+
+        bot.reply(message, "eu vou te lembrar de *" + msg + "* em *" + time / 1000 + "* segundos...", false, true, {
+            selfDestruct: time
+        });
+
+        setTimeout(send, time);
+
+        function send() {
+            bot.sendMessage(message.author, time + " tempo. **" + msg + "**");
         }
     }
 }

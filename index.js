@@ -108,7 +108,7 @@ exports.Client.prototype.login = function(email, password) {
         .post(Endpoints.LOGIN)
         .send(details)
         .end(function(err, res) {
-            if (!res.ok) {
+            if (err) {
                 client.triggerEvent("disconnected", [{
                     reason: "falha ao iniciar a sessão",
                     error: err
@@ -304,7 +304,7 @@ exports.Client.prototype.createServer = function(_name, _region, cb) {
         .set("authorization", client.token)
         .send(details)
         .end(function(err, res) {
-            if (!res.ok) {
+            if (err) {
                 cb(err);
             } else {
                 client.cacheServer(res.body.id, function(server) {
@@ -321,7 +321,7 @@ exports.Client.prototype.leaveServer = function(server, cb) {
 		.del(Endpoints.SERVERS + "/" + server.id)
 		.set("authorization", client.token)
 		.end(function(err, res) {
-			if (!res.ok) {
+			if (err) {
 				cb(err);
 			} else {
                 client.serverList.removeElement(server);
@@ -349,7 +349,7 @@ exports.Client.prototype.createInvite = function(channel, options, cb) {
 		.set("authorization", client.token )
 		.send(options)
 		.end(function(err, res) {
-			if (!res.ok) {
+			if (err) {
 				cb(err);
 			} else {
 				cb(false, new Invite(res.body));
@@ -357,22 +357,23 @@ exports.Client.prototype.createInvite = function(channel, options, cb) {
 		})
 }
 
-exports.Client.prototype.startPM = function( user, message, cb, _mentions, options ) {
+exports.Client.prototype.startPM = function(user, message, cb, _mentions, options) {
 	var client = this;
+
 	request
-		.post( Endpoints.USERS + "/" + client.user.id + "/channels" )
-		.set( "authorization", client.token )
-		.send( {
+		.post(Endpoints.USERS + "/" + client.user.id + "/channels")
+		.set("authorization", client.token)
+		.send({
 			recipient_id: user.id
-		} )
-		.end( function( err, res ) {
-			if ( !res.ok ) {
-				cb( err );
+		})
+		.end(function(err, res) {
+			if (err) {
+				cb(err);
 			} else {
-				client.PMList.add( new PMChannel( res.body.recipient, res.body.id ) );
-				client.sendMessage( user, message, cb, _mentions, options );
+				client.PMList.add(new PMChannel(res.body.recipient, res.body.id));
+				client.sendMessage(user, message, cb, _mentions, options);
 			}
-		} );
+		});
 }
 
 exports.Client.prototype.sendMessage = function(channel, message, cb, _mentions) {
@@ -491,7 +492,7 @@ exports.Client.prototype.getChannelLogs = function(channel, amount, cb) {
         .get(Endpoints.CHANNELS + "/" + channel.id + "/messages?limit=" + amount)
         .set("authorization", client.token)
         .end(function(err, res) {
-            if (!res.ok) {
+            if (err) {
                 cb(err);
 
                 return;
@@ -518,7 +519,7 @@ exports.Client.prototype.createChannel = function(server, serverName, serverType
 			type: serverType
 		})
 		.end(function(err, res) {
-			if (!res.ok) {
+			if (err) {
 				cb(err);
 			} else {
 				var chann = new Channel(res.body, server);
@@ -537,7 +538,7 @@ exports.Client.prototype.deleteChannel = function( channel, cb ) {
 		.del(Endpoints.CHANNELS + "/" + channel.id)
 		.set("authorization", client.token)
 		.end(function(err, res) {
-			if (!res.ok) {
+			if (err) {
 				cb(err);
 			} else {
 				client.serverList.filter("id", channel.server.id, true).channels.removeElement(channel);
@@ -556,7 +557,7 @@ exports.Client.prototype.deleteServer = function(server, cb) {
 		.del(Endpoints.SERVERS + "/" + server.id)
 		.set("authorization", client.token)
 		.end(function(err, res) {
-			if (!res.ok) {
+			if (err) {
 				cb(err);
 			} else {
 				client.serverList.removeElement(server);
