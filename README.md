@@ -7,7 +7,7 @@ the aim of this api is to make it *really* simple to start developing your bots.
 ## installation
 
 ```bash
-npm install discord.js
+npm install --save discord.js
 ```
 
 ## features
@@ -18,6 +18,7 @@ npm install discord.js
 * menção silenciosa - aciona uma notificação de menção sem realmente @mentioning um usuário
 * obtenha metadados completos sobre usuários, canais e servidores - incluindo avatares
 * obtenha logs ilimitados de canais
+* caching rápido e eficiente
 
 ## example usage
 
