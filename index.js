@@ -55,19 +55,17 @@ exports.Client.prototype.off = function(name) {
     this.events[name] = function() {};
 }
 
-exports.Client.prototype.cacheServer = function(id, cb, members, channelInfo) {
+exports.Client.prototype.cacheServer = function(id, cb, members) {
     console.log("capturando...");
 
     var self = this;
-    var serverInput;
+    var serverInput = {};
 
     if (typeof id === 'string' || id instanceof String) {
         // é um id
         if (this.serverList.filter("id", id).length > 0) {
             return;
         }
-
-        console.log("teste");
 
         request
             .get(Endpoints.SERVERS + "/" + id)
@@ -115,15 +113,15 @@ exports.Client.prototype.cacheServer = function(id, cb, members, channelInfo) {
             dat.owner_id,
             dat.name,
             id,
-            members || dat.members,
+            serverInput.members || dat.members,
             dat.icon,
             dat.afk_timeout,
             dat.afk_channel_id
         );
 
-        console.log(server.id);
-
-        if (!channelInfo)
+        if (dat.channels)
+            cacheChannels(dat.channels);
+        else
             channelsFromHTTP();
     }
 
@@ -212,17 +210,7 @@ exports.Client.prototype.connectWebsocket = function(cb) {
                     for (x in _servers) {
                         _server = _servers[x];
 
-                        var sID = "";
-
-						for (role of _server.roles) {
-							if (role.name === "@everyone") {
-								sID = role.id;
-
-								break;
-							}
-						}
-
-						client.cacheServer(sID, function(server) {
+                        client.cacheServer(_server, function(server) {
                             cached++;
 
                             if (cached >= toCache) {
@@ -230,7 +218,7 @@ exports.Client.prototype.connectWebsocket = function(cb) {
                                 
                                 client.triggerEvent("ready");
                             }
-                        }, _server.members);
+                        });
                     }
 
                     for (x in data.private_channels) {
@@ -266,10 +254,10 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 						}
 					}
 				} else if (dat.t === "GUILD_CREATE") {
-					if (!client.serverList.filter("id", dat.d.id, true)) {
+					if (!client.serverList.filter("id", dat.d, true)) {
 						client.cacheServer(dat.d.id, function(server) {
 							client.triggerEvent("serverJoin", [server]);
-						}, dat.d.members);
+						});
 					}
 				} else if (dat.t === "CHANNEL_CREATE") {
 					var srv = client.serverList.filter("id", dat.d.guild_id, true);
