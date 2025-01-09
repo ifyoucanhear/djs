@@ -24,6 +24,8 @@ Commands["info"] = {
     }
 }
 
+Commands[""]
+
 Commands["echo"] = {
     oplevel: 0,
 
@@ -101,10 +103,9 @@ Commands["clear"] = {
 
                             if (todo === 0) {
                                 bot.reply(
-                                    msg,
+                                    message,
                                     "feito! " + deletedCount + " mensagem(ns) foram deletadas, com " + failedCount + "erro(s).",
-                                    false,
-                                    true, {
+                                    false, {
                                         selfDestruct: 5000
                                     }
                                 );
@@ -190,6 +191,45 @@ Commands["icon"] = {
         }
 
         bot.reply(message, message.channel.server.getIconURL());
+    }
+}
+
+Commands["feedback"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var amount = getKey(params, "amount") || getKey(params, "n") || 1000;
+
+        bot.getChannelLogs(message.channel, amount, function(err, logs) {
+            if (err) {
+                bot.reply(message, "ocorreu um erro ao capturar os logs...", false, {
+                    selfDestruct: 3000
+                });
+            } else {
+                var found = [];
+
+                for (msg of logs.contents) {
+                    if (~msg.content.indexOf("[request") || ~msg.content.indexOf("[feature" || ~msg.content.indexOf("[suggestion"))) {
+                        if (msg.content.length > 15) {
+                            found.push(msg);
+                        }
+                    }
+                }
+
+                bot.sendMessage(message.author, "ok, aqui está um resumo de todas as solicitações de features até agora:", function(err, ms) {
+                    if (!err)
+                        gothroughit();
+                });
+
+                bot.reply(message, "eu encontrei " + found.length + "resultado(s) que coincidem com isso. te enviarei na sua dm");
+
+                function gothroughit() {
+                    for (msg of found) {
+                        bot.sendMessage(message.author, "**" + msg.author.username + "** falou:\n    " + msg.content);
+                    }
+                }
+            }
+        });
     }
 }
 

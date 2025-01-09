@@ -441,8 +441,6 @@ exports.Client.prototype.sendMessage = function(destination, toSend, callback, o
 		} else if ( destination instanceof User ) {
 			var destId = self.PMList.deepFilter( [ "user", "id" ], destination.id, true );
 
-			console.log(destId);
-
 			if (destId) {
 				channel_id = destId.id;
 			} else {
@@ -506,7 +504,7 @@ exports.Client.prototype.deleteMessage = function(message, callback) {
 
 	var self = this;
 
-	Internal.XHR.deleteMessage(self.token, message.channel.id, message.id, callback);
+	Internal.XHR.deleteMessage(self.token, channel.id, message.id, callback);
 }
 
 exports.Client.prototype.getChannelLogs = function(channel, amount, callback) {

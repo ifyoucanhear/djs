@@ -34,7 +34,7 @@ var time = Date.now();
 // quando o bot estiver pronto, output no console
 bot.on("ready", function() {
     console.log("pronto em " + (Date.now() - time) + "ms");
-    console.log(bot.PMList);
+    console.log(Commands);
 });
 
 // quando o bot for desconectado, encerrar tudo
