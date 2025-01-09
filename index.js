@@ -50,7 +50,7 @@ exports.Client.prototype.getChannel = function(id) {
 }
 
 exports.Client.prototype.triggerEvent = function(event, args) {
-	if (!this.ready && event !== "raw" && event !== "disconnected") { //if we're not even loaded yet, don't try doing anything because it always ends badly!
+	if (!this.ready && event !== "raw" && event !== "disconnected" && event !== "debug") { //if we're not even loaded yet, don't try doing anything because it always ends badly!
 		return;
 	}
 	
@@ -140,18 +140,23 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
 exports.Client.prototype.login = function(email, password) {
 	var self = this;
 
+	self.connectWebsocket();
+
 	Internal.XHR.login(email, password, function(err, token) {
 		if (err) {
 			self.triggerEvent("disconnected", [{
 				reason: "ocorreu um erro ao iniciar a sessão",
 				error: err
 			}]);
+
+			self.websocket.close();
 		} else {
 			self.token = token;
+
+			self.websocket.sendData();
 			self.loggedIn = true;
-			self.connectWebsocket();
 		}
-	} );
+	});
 }
 
 exports.Client.prototype.reply = function(destination, toSend, callback, options) {
@@ -166,6 +171,8 @@ exports.Client.prototype.reply = function(destination, toSend, callback, options
 
 exports.Client.prototype.connectWebsocket = function(cb) {
 	var self = this;
+
+	var sentInitData = false;
 
 	this.websocket = new WebSocket(Endpoints.WEBSOCKET_HUB);
 
@@ -211,7 +218,7 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 						self.cacheServer(_server, function(server) {
 							cached++;
 
-							if (cached >= toCache) {
+							if (cached === toCache) {
 								self.ready = true;
 								self.triggerEvent("ready");
 							}
@@ -219,7 +226,6 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 					}
 				} else if (dat.t === "MESSAGE_CREATE") {
 					var data = dat.d;
-
 					var channel = self.getChannel(data.channel_id);
 					var message = new Message(data, channel);
 
@@ -324,22 +330,30 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 	}
 
 	this.websocket.onopen = function() {
-		var connDat = {
-			op: 2,
-            
-            d: {
-				token: self.token,
-				v: 2
-			}
-		};
+		this.sendData("onopen");
+	}
 
-		connDat.d.properties = Internal.WebSocket.properties;
+	this.websocket.sendData = function(why) {
+		if (this.readyState == 1 && !sentInitData && self.token) {
+			sentInitData = true;
 
-		this.sendPacket(connDat);
+			var connDat = {
+				op: 2, d: {
+					token: self.token,
+					v: 2
+				}
+			};
+
+			connDat.d.properties = Internal.WebSocket.properties;
+
+			this.sendPacket(connDat);
+		}
 	}
 }
 
 exports.Client.prototype.logout = function(callback) {
+	callback = callback || function() {};
+	
 	var self = this;
 
 	Internal.XHR.logout(self.token, function(err) {
