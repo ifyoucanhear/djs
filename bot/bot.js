@@ -46,6 +46,23 @@ bot.on("disconnected", function(obj) {
     process.exit(0);
 });
 
+bot.on("messageDelete", function(message) {
+    console.log(message);
+});
+
+bot.on("messageUpdate", function(former, edit) {
+    if (former.author.equals(this.user)) {
+        return;
+    }
+
+    if (former) {
+        var seconds = Math.round((Date.now() - former.time) / 1000);
+        var channel = former.channel;
+
+        bot.sendMessage(channel, "**" + former.author.username + "** (editar da mensagem " + seconds + " segundos atrás):\n    " + former.content);
+    }
+});
+
 bot.on("message", function(message) {
     // caso a mensagem não comece com um prefixo de comando válido, encerrar
     if (commandPrefixes.indexOf(message.content.charAt(0)) == -1)
