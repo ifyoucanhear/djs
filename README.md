@@ -4,6 +4,10 @@ a node module that allows you to interface with the [discord](https://discordapp
 
 the aim of this api is to make it *really* simple to start developing your bots. this api has server, channel and user tracking, as well as tools to make identification really simple.
 
+## esse módulo ainda está em alpha
+
+this node module is still in alpha, and some methods and functions may change or completely disappear
+
 ## installation
 
 ```bash

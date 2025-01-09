@@ -11,6 +11,8 @@ Commands["info"] = {
         var verbose = hasFlag(params, "verbose") || hasFlag(params, "v");
         var user = getUser(message, params);
 
+        console.log("INFO", params);
+
         bot.reply(message, [
             "aqui algumas informações de " + user.mention() + ":",
             "no canal **#" + message.channel.name + "**" + (verbose ? " - id *" + message.channel.id + "*" : ""), (message.isPM() ? "você está em uma conversa privada comigo" + (verbose ? " o id é " + message.channel.id : "") : "no servidor **" + message.channel.server.name + "**" + (verbose ? " - id *" + message.channel.server.id + "*" : "")),
@@ -205,6 +207,16 @@ Commands["remind"] = {
         function send() {
             bot.sendMessage(message.author, time + " tempo. **" + msg + "**");
         }
+    }
+}
+
+Commands["annoy"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var user = getUser(message, params);
+
+        bot.sendMessage(user, message.author.mention() + "me enviou aqui para te incomodar");
     }
 }
 
