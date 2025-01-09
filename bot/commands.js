@@ -11,15 +11,14 @@ Commands["info"] = {
         var verbose = hasFlag(params, "verbose") || hasFlag(params, "v");
         var user = getUser(message, params);
 
-        console.log("INFO", params);
-
         bot.reply(message, [
             "aqui algumas informações de " + user.mention() + ":",
             "no canal **#" + message.channel.name + "**" + (verbose ? " - id *" + message.channel.id + "*" : ""), (message.isPM() ? "você está em uma conversa privada comigo" + (verbose ? " o id é " + message.channel.id : "") : "no servidor **" + message.channel.server.name + "**" + (verbose ? " - id *" + message.channel.server.id + "*" : "")),
             "id de usuário é *" + user.id + "*",
             "autoridade/level op para mim é **" + Authority.getLevel(user) + "**"
         ], function(err) {
-            console.log(err);
+            if (err)
+                console.log(err);
         });
     }
 }
@@ -368,18 +367,14 @@ Commands["activity"] = {
                 }
 
                 var report = "aqui uma lista de atividade na última " + count + "de mensagens: \n\n";
-                var users = {};
+                var usernames = {};
 
                 for (id in activity) {
-                    users[id] = message.channel.server.members.filter("id", id, true);
+                    usernames[id] = bot.getUser(id).username;
                 }
 
-                activity = Object.keys(activity).sort(function(a, b) {
-                    return activity[a] - activity[b]
-                });
-
                 for (id in activity) {
-                    report += id + " | " + activity[id] + " | **" + Math.round((activity[id] / count) * 100) + "%**.\n";
+                    report += username[id] + " | " + activity[id] + " | **" + Math.round((activity[id] / count) * 100) + "%**.\n";
                 }
 
                 bot.reply(message, report, false, false);

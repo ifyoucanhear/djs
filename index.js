@@ -10,6 +10,13 @@ var PMChannel = require("./lib/PMChannel.js").PMChannel;
 var WebSocket = require("ws");
 var Internal = require("./lib/internal.js").Internal;
 
+/**
+ * o módulo wrapper para o discord client também fornece alguns objetos úteis
+ * 
+ * @module Discord
+ */
+exports;
+
 exports.Endpoints = Endpoints;
 exports.Server = Server;
 exports.Message = Message;
@@ -19,52 +26,190 @@ exports.List = List;
 exports.Invite = Invite;
 exports.PMChannel = PMChannel;
 
+/**
+ * O cliente discord usado para fazer interface com a api do discord
+ * 
+ * @class Client
+ * @constructor
+ * @param {Object} options um objeto contendo opções configuráveis
+ * @param {Number} [options.maxmessage=5000] a quantidade máxima de mensagens a ser armazenada por canal
+ */
+
 exports.Client = function(options) {
+	/**
+	 * contém as opções do client
+	 * 
+	 * @attribute options
+	 * @type {Object}
+	 */
 	this.options = options || {};
 	this.options.maxmessage = 5000;
+
+	/**
+	 * contém o token utilizado para autorizar solicitações http e conexão websocket
+	 * 
+	 * @attribute token
+	 * @readonly
+	 * @type {String}
+	 */
 	this.token = "";
+
+	/**
+	 * indica se o cliente está logado ou não. não indica se o cliente está pronto
+	 * 
+	 * @attribute loggedIn
+	 * @readonly
+	 * @type {Boolean}
+	 */
 	this.loggedIn = false;
+
+	/**
+	 * o websocket utilizado ao receber uma mensagem e outras atualizações de evento
+	 * 
+	 * @type {WebSocket}
+	 * @attribute websocket
+	 * @readonly
+	 */
 	this.websocket = null;
+
+	/**
+	 * um objeto contendo as funções vinculadas aos eventos. devem ser configuradas em client.on();
+	 * 
+	 * @type {Object}
+	 * @attribute events
+	 */
 	this.events = {};
+
+	/**
+	 * o user da classe client, configurando quando a inicialização inicial for completa
+	 * 
+	 * @attribute user
+	 * @type {User}
+	 * @readonly
+	 */
 	this.user = null;
+
+	/**
+	 * indica se o cliente está pronto e armazenou em cache todos os servidores que conhece
+	 * 
+	 * @type {Boolean}
+	 * @attribute ready
+	 * @readonly
+	 */
 	this.ready = false;
 
+	/**
+	 * uma lista contendo todos os servidores que o client tem acesso
+	 * 
+	 * @attribute serverList
+	 * @type {List}
+	 * @readonly
+	 */
 	this.serverList = new List("id");
+
+	/**
+	 * uma lista contendo todos os pmchannels que o client tem acesso
+	 * 
+	 * @attribute PMList
+	 * @type {List}
+	 * @readonly
+	 */
 	this.PMList = new List("id");
 }
 
+/**
+ * retorna a lista de todos os servidores que o client do discord tem acesso
+ * 
+ * @method getServers
+ * 
+ * @returns {List} ServerList
+ */
 exports.Client.prototype.getServers = function() {
 	return this.serverList;
 }
 
+/**
+ * retorna a lista de todos os servidores que o client do discord tem acesso
+ * 
+ * @method getChannels
+ * 
+ * @returns {List} Channelist
+ */
 exports.Client.prototype.getChannels = function() {
 	return this.serverList.concatSublists( "channels", "id" );
 }
 
+/**
+ * retorna o servidor que coincide com o id fornecido, ou falso caso não seja encontrado.
+ * retornará falso se o servidor não estiver armazenado ou disponível
+ * 
+ * @method getServer
+ * 
+ * @param {String/Number} id o id do servidor
+ * 
+ * @return {Server} o servidor que coincida com o id
+ */
 exports.Client.prototype.getServer = function(id) {
 	return this.getServers().filter("id", id, true);
 }
 
+/**
+ * retorna o canal que coincida com o id fornecido, ou falso caso não seja encontrado
+ * retornará falso se o servidor não estiver armazenado ou disponível
+ * 
+ * @method getChannel
+ * 
+ * @param {String/Number} id o id do canal
+ * 
+ * @return {Server} o servidor que coincida com o id
+ */
 exports.Client.prototype.getChannel = function(id) {
 	return this.getChannels().filter("id", id, true);
 }
 
+/**
+ * alerta um evento .on()
+ * 
+ * @param {String} event o evento que será alertado
+ * @param {Array} args os argumentos que serão passados pelo método
+ * 
+ * @return {Boolean} se o evento for alertado com sucesso
+ * 
+ * @private
+ */
 exports.Client.prototype.triggerEvent = function(event, args) {
 	if (!this.ready && event !== "raw" && event !== "disconnected" && event !== "debug") { //if we're not even loaded yet, don't try doing anything because it always ends badly!
-		return;
+		return false;
 	}
 	
     if (this.events[event]) {
 		this.events[event].apply(this, args);
+
+		return true;
 	} else {
 		return false;
 	}
 }
 
+/**
+ * vincula uma função a um evento
+ * 
+ * @param {String} name o nome do evento ao qual a função deve estar vinculada
+ * @param {Function} fn a função que deve ser vinculada ao evento
+ * 
+ * @method on
+ */
 exports.Client.prototype.on = function(name, fn) {
 	this.events[name] = fn;
 }
 
+/**
+ * desvincula uma função de um evento
+ * 
+ * @param {String} name o nome do evento que deverá ser limpo
+ * 
+ * @method off
+ */
 exports.Client.prototype.off = function(name) {
 	this.events[name] = function() {};
 }
@@ -137,12 +282,33 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
 	}
 }
 
-exports.Client.prototype.login = function(email, password) {
+/**
+ * efetua o login no cliente com as credenciais especificadas e começa a inicializá-lo
+ * 
+ * @async
+ * 
+ * @method login
+ * 
+ * @param {String} email o email do discord
+ * @param {String} password a senha do discord
+ * 
+ * @param {Function} [callback] chamado quando recebeu resposta do servidor de autenticação
+ * @param {Object} callback.error definido como nulo se não houve erro ao fazer login, caso contrário, é um objeto que pode ser avaliado como true
+ * @param {String} callback.error.reason a razão pela qual houve um erro
+ * @param {Object} callback.error.error o erro xhr bruto
+ * @param {String} callback.token o token recebido ao fazer login
+ */
+exports.Client.prototype.login = function(email, password, callback) {
 	var self = this;
+	callback = callback || function() {};
 
 	self.connectWebsocket();
 
+	var time = Date.now();
+
 	Internal.XHR.login(email, password, function(err, token) {
+		console.log(Date.now() - time);
+
 		if (err) {
 			self.triggerEvent("disconnected", [{
 				reason: "ocorreu um erro ao iniciar a sessão",
@@ -155,6 +321,8 @@ exports.Client.prototype.login = function(email, password) {
 
 			self.websocket.sendData();
 			self.loggedIn = true;
+
+			callback(null, token);
 		}
 	});
 }
@@ -644,10 +812,6 @@ exports.Client.prototype.deleteServer = function(server, callback) {
         callback(null);
 	});
 }
-
-/**
- * utilidades
- */
 
 exports.Client.prototype.getServers = function() {
  	return this.serverList;
