@@ -16,13 +16,14 @@ npm install --save discord.js
 
 ## features
 
-* envie, receba e exclua mensagens de canais _e_ dms! inicia automaticamente uma dm para você
+* envie, receba, exclua e **edite** mensagens de canais _e_ dms! inicia automaticamente uma dm para você
 * criar, excluir e sair de servidores e canais
 * criar convites para servidores
 * menção silenciosa - aciona uma notificação de menção sem realmente @mentioning um usuário
 * obtenha metadados completos sobre usuários, canais e servidores - incluindo avatares
 * obtenha logs ilimitados de canais
 * caching rápido e eficiente
+* auto-cache mensagens
 
 ## example usage
 

@@ -41,7 +41,6 @@ bot.on("ready", function() {
 bot.on("disconnected", function(obj) {
     // avisar que não pôde ser conectado e então encerrar
     console.log("desconectado - ", obj.reason);
-    console.log(obj.error);
 
     process.exit(0);
 });
