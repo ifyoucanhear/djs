@@ -18,7 +18,9 @@ Commands["info"] = {
             "no canal **#" + message.channel.name + "**" + (verbose ? " - id *" + message.channel.id + "*" : ""), (message.isPM() ? "você está em uma conversa privada comigo" + (verbose ? " o id é " + message.channel.id : "") : "no servidor **" + message.channel.server.name + "**" + (verbose ? " - id *" + message.channel.server.id + "*" : "")),
             "id de usuário é *" + user.id + "*",
             "autoridade/level op para mim é **" + Authority.getLevel(user) + "**"
-        ]);
+        ], function(err) {
+            console.log(err);
+        });
     }
 }
 
