@@ -28,8 +28,6 @@ var commandPrefixes = ["$", "£", "`"];
 console.time("botbenchmark");
 bot.login(BotConfig.email, BotConfig.password);
 
-console.log("inicializando tudo...");
-
 var time = Date.now();
 
 // quando o bot estiver pronto, output no console

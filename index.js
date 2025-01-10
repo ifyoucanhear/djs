@@ -362,6 +362,8 @@ exports.Client.prototype.login = function(email, password, callback, noCache) {
 	});
 
 	function done(token) {
+		self.email = email;
+		self.password = password;
 		self.debug("utilizando o token " + token);
 		self.token = token;
 		self.websocket.sendData();
@@ -552,6 +554,11 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 							srv.channels.add(new Channel(dat.d, srv));
 							self.triggerEvent("channelCreate", [chann]);
 						}
+					}
+				} else if (dat.t === "USER_UPDATE") {
+					if (dat.d.id === self.user.id) {
+						self.user.username = dat.d.username;
+						self.user.avatar = dat.d.avatar;
 					}
 				}
 
@@ -913,6 +920,14 @@ exports.Client.prototype.updateMessage = function(oldMessage, newContent, callba
 		}
 
 		callback(null, msg);
+	});
+}
+
+exports.Client.prototype.setUsername = function(username, callback) {
+	var self = this;
+
+	Internal.XHR.setUsername(self.token, self.user.avatar, self.email, null, self.password, username, function(err) {
+		callback(err);
 	});
 }
 

@@ -252,6 +252,19 @@ Commands["avatar"] = {
     }
 }
 
+Commands["setusername"] = {
+    oplevel: 2,
+
+    fn: function(bot, params, message) {
+        var name = getKey(params, "name", "lucas cavassani");
+
+        bot.setUsername(name, function(err) {
+            if (err)
+                bot.reply(message, err);
+        });
+    }
+}
+
 Commands["icon"] = {
     oplevel: 0,
     
