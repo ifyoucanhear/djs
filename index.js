@@ -10,6 +10,8 @@ var PMChannel = require("./lib/PMChannel.js").PMChannel;
 var WebSocket = require("ws");
 var Internal = require("./lib/internal.js").Internal;
 
+var serverCreateRequests = [];
+
 /**
  * o módulo wrapper para o discord client também fornece alguns objetos úteis
  * 
@@ -450,6 +452,7 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 						data.id = data.id || formerMessage.id;
 						data.mentions = data.mentions || formerMessage.mentions;
 						data.mention_everyone = data.mention_everyone || formerMessage.everyoneMentioned;
+						data.embeds = data.embeds || formerMessage.embeds;
 
 						newMessage = new Message(data, channel);
 
@@ -464,44 +467,45 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 					var data = dat.d;
 
 					self.triggerEvent("presence", [new User(data.user), data.status, self.serverList.filter("id", data.guild_id, true)]);
-				} else if ( dat.t === "GUILD_DELETE") {
-					var deletedServer = self.serverList.filter( "id", dat.d.id, true );
+				} else if (dat.t === "GUILD_DELETE") {
+					var deletedServer = self.serverList.filter("id", dat.d.id, true);
 
-					if ( deletedServer ) {
-						self.triggerEvent( "serverDelete", [ deletedServer ] );
+					if (deletedServer) {
+						self.triggerEvent("serverDelete", [deletedServer]);
 					}
-				} else if ( dat.t === "CHANNEL_DELETE" ) {
-					var delServer = self.serverList.filter( "id", dat.d.guild_id, true );
+				} else if (dat.t === "CHANNEL_DELETE") {
+					var delServer = self.serverList.filter("id", dat.d.guild_id, true);
 
-					if ( delServer ) {
-						var channel = delServer.channels.filter( "id", dat.d.id, true );
+					if (delServer) {
+						var channel = delServer.channels.filter("id", dat.d.id, true);
 
-						if ( channel ) {
-							self.triggerEvent( "channelDelete", [ channel ] );
+						if (channel) {
+							self.triggerEvent("channelDelete", [channel]);
 						}
 					}
-				} else if ( dat.t === "GUILD_CREATE" ) {
-					if ( !self.serverList.filter( "id", dat.d.id, true ) ) {
-						self.cacheServer( dat.d, function( server ) {
-							self.triggerEvent( "serverJoin", [ server ] );
-						} );
+				} else if (dat.t === "GUILD_CREATE") {
+					if (!self.serverList.filter("id", dat.d.id, true)) {
+						self.cacheServer(dat.d, function(server) {
+							if (serverCreateRequests[server.id]) {
+								serverCreateRequests[server.id](null, server);
+								serverCreateRequests[server.id] = null;
+							} else {
+								self.triggerEvent("serverJoin", [server]);
+							}
+						});
 					}
-				} else if ( dat.t === "CHANNEL_CREATE" ) {
-					var srv = self.serverList.filter( "id", dat.d.guild_id, true );
+				} else if (dat.t === "CHANNEL_CREATE") {
+					var srv = self.serverList.filter("id", dat.d.guild_id, true);
 
-					if ( srv ) {
+					if (srv) {
+						if (!srv.channels.filter("id", dat.d.d, true)) {
 
-						if ( !srv.channels.filter( "id", dat.d.d, true ) ) {
+							var chann = new Channel(dat.d, srv);
 
-							var chann = new Channel( dat.d, srv );
-
-							srv.channels.add( new Channel( dat.d, srv ) );
-							self.triggerEvent( "channelCreate", [ chann ] );
-
+							srv.channels.add(new Channel(dat.d, srv));
+							self.triggerEvent("channelCreate", [chann]);
 						}
-
 					}
-
 				}
 
 				break;
@@ -910,6 +914,19 @@ exports.Client.prototype.deleteServer = function(server, callback) {
 		self.triggerEvent("serverDelete", [server]);
 		
         callback(null);
+	});
+}
+
+exports.Client.prototype.joinServer = function(invite, callback) {
+	var self = this;
+	var code = (invite instanceof Invite ? invite.code : invite);
+
+	Internal.XHR.acceptInvite(self.token, code, function(err, inviteData) {
+		if (err) {
+			callback(err);
+		} else {
+			serverCreateRequests[inviteData.guild.id] = callback;
+		}
 	});
 }
 

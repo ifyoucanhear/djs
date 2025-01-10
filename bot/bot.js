@@ -25,6 +25,7 @@ var bot = new Discord.Client();
 var commandPrefixes = ["$", "£", "`"];
 
 // log o cliente utilizando detalhes de auth no config.json
+console.time("botbenchmark");
 bot.login(BotConfig.email, BotConfig.password);
 
 console.log("inicializando tudo...");
@@ -33,7 +34,7 @@ var time = Date.now();
 
 // quando o bot estiver pronto, output no console
 bot.on("ready", function() {
-    console.log("pronto em " + (Date.now() - time) + "ms");
+    console.timeEnd("botbenchmark");
 });
 
 // quando o bot for desconectado, encerrar tudo
@@ -49,11 +50,11 @@ bot.on("messageDelete", function(message) {
 });
 
 bot.on("messageUpdate", function(former, edit) {
-    if (former.author.equals(this.user)) {
-        return;
-    }
-
     if (former) {
+        if (former.author.equals(this.user) || former.content === edit.content) {
+            return;
+        }
+
         var seconds = Math.round((Date.now() - former.time) / 1000);
         var channel = former.channel;
 

@@ -1,6 +1,6 @@
 {
   "name": "djs",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "a js interface for the discord api.",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,8 @@
     "discord",
     "api",
     "bot",
-    "client"
+    "client",
+    "node"
   ],
   "author": "cavassani <lucas.cavassani.qpc@gmail.com>",
   "license": "Apache-2.0",

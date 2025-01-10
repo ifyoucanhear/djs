@@ -315,6 +315,22 @@ Commands["feedback"] = {
     }
 }
 
+Commands["acceptinvite"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var inv = getKey(params, "i");
+
+        bot.joinServer(inv, function(err, server) {
+            if (err) {
+                bot.reply(message, "não foi possível entrar nesse servidor...");
+            } else {
+                bot.reply(message, "eu entrei no servidor **" + server.name + "**, que possui " + server.channels.length() + " canais e " + server.members.length() + "membros.");
+            }
+        });
+    }
+}
+
 Commands["remind"] = {
     oplevel: 0,
 
