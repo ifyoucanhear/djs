@@ -25,6 +25,6 @@ bot.on("message", function(message) {
 	// se valer "ping", então o bot responderá com "pong"
 	if (message.content === "ping") {
 		// envia a mensagem "pong" no canal onde a mensagem foi enviada
-		this.sendMessage(message.channel, "pong");
+		this.sendMessage(message, "pong");
 	}
 });
