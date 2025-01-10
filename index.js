@@ -515,6 +515,21 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 				} else if (dat.t === "PRESENCE_UPDATE") {
 					var data = dat.d;
 
+					var getUser = self.getUser(data.user.id);
+
+					if (getUser) {
+						// o usuário já existe
+						var usr = new User(data.user);
+
+						if (usr.equalsStrict(getUser)) {
+							// sem mudanças, atualmente uma presença
+						} else {
+							if (self.updateUserReferences(data.user.id, getUser, new User(data.user))) {
+								self.triggerEvent("userupdate", [getUser, usr]);
+							}
+						}
+					}
+
 					self.triggerEvent("presence", [new User(data.user), data.status, self.serverList.filter("id", data.guild_id, true)]);
 				} else if (dat.t === "GUILD_DELETE") {
 					var deletedServer = self.serverList.filter("id", dat.d.id, true);
@@ -1031,6 +1046,20 @@ exports.Client.prototype.getUser = function(id) {
 
 exports.isUserID = function(id) {
  	return ((id + "").length === 17 && !isNaN(id));
+}
+
+exports.Client.prototype.updateUserReferences = function(id, oldUser, user) {
+	if (oldUser.equalsStrict(user)) {
+		return false;
+	}
+
+	for (server of this.serverList.contents) {
+		server.members.updateElement(oldUser, usr);
+	}
+
+	this.debug("referências atualizadas para " + oldUser.username + " em " + this.getUser(id).username);
+
+	return true;
 }
 
 exports.Client.prototype.addPM = function(pm) {
