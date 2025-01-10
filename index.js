@@ -9,6 +9,7 @@ var Invite = require("./lib/invite.js").Invite;
 var PMChannel = require("./lib/PMChannel.js").PMChannel;
 var WebSocket = require("ws");
 var Internal = require("./lib/internal.js").Internal;
+var TokenManager = require("./lib/TokenManager.js").TokenManager;
 
 var serverCreateRequests = [];
 
@@ -46,6 +47,7 @@ exports.Client = function(options) {
 	 */
 	this.options = options || {};
 	this.options.maxmessage = 5000;
+	this.tokenManager = new TokenManager("./", "tokencache.json");
 
 	/**
 	 * contém o token utilizado para autorizar solicitações http e conexão websocket
@@ -302,17 +304,25 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
  * @param {Object} callback.error.error o erro xhr bruto
  * @param {String} callback.token o token recebido ao fazer login
  */
-exports.Client.prototype.login = function(email, password, callback) {
+exports.Client.prototype.login = function(email, password, callback, noCache) {
 	var self = this;
 	callback = callback || function() {};
 
+	if (noCache == undefined || noCache == null) {
+		noCache = false;
+	}
+
 	self.connectWebsocket();
+
+	if (this.tokenManager.exists(email) && !noCache) {
+		done(this.tokenManager.getToken(email, password));
+
+		return;
+	}
 
 	var time = Date.now();
 
 	Internal.XHR.login(email, password, function(err, token) {
-		console.log(Date.now() - time);
-
 		if (err) {
 			self.triggerEvent("disconnected", [{
 				reason: "ocorreu um erro ao iniciar a sessão",
@@ -321,14 +331,21 @@ exports.Client.prototype.login = function(email, password, callback) {
 
 			self.websocket.close();
 		} else {
-			self.token = token;
+			if (!noCache) {
+				self.tokenManager.addToken(email, token, password);
+			}
 
-			self.websocket.sendData();
-			self.loggedIn = true;
-
-			callback(null, token);
+			done(token);
 		}
 	});
+
+	function done(token) {
+		self.token = token;
+		self.websocket.sendData();
+		self.loggedIn = true;
+
+		callback(null, token);
+	}
 }
 
 /**
