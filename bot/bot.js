@@ -39,6 +39,22 @@ bot.on("ready", function() {
     console.timeEnd("botbenchmark");
 });
 
+bot.on("userupdate", function(ol, ne) {
+    var serversInvolved = bot.getServers().deepFilter(["members", "id"], ol.id);
+
+    console.log(serversInvolved);
+
+    for (server of serversInvolved.contents) {
+        console.log("gra", server);
+
+        bot.sendMessage(server.getDefaultChannel(), "apenas dizendo que", + ol.username + " alterou seu nome de usuário para " + ne.username + "...", function(err) {
+            console.log(err);
+        }, {
+            selfDestruct: 5000
+        });
+    }
+});
+
 // quando o bot for desconectado, encerrar tudo
 bot.on("disconnected", function(obj) {
     // avisar que não pôde ser conectado e então encerrar

@@ -253,7 +253,7 @@ Commands["avatar"] = {
 }
 
 Commands["setusername"] = {
-    oplevel: 2,
+    oplevel: 3,
 
     fn: function(bot, params, message) {
         var name = getKey(params, "name", "lucas cavassani");
