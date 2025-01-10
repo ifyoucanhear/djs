@@ -331,6 +331,23 @@ Commands["acceptinvite"] = {
     }
 }
 
+Commands["filtertest"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        console.log(message.channel.server.members.filter("username", "BOT"));
+        console.log(message.channel.server.members.filter("username", "BOT", false, true));
+    }
+}
+
+Commands["test"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        console.log(message.channel.server.channels.filter("name", "a", true));
+    }
+}
+
 Commands["remind"] = {
     oplevel: 0,
 
