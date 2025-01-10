@@ -11,7 +11,11 @@ var WebSocket = require("ws");
 var Internal = require("./lib/internal.js").Internal;
 var TokenManager = require("./lib/TokenManager.js").TokenManager;
 
-var serverCreateRequests = [];
+var serverCreateRequests = [].globalLoginTime = Date.now();
+
+function tp(time) {
+	return Date.now() - time;
+}
 
 /**
  * o módulo wrapper para o discord client também fornece alguns objetos úteis
@@ -305,6 +309,10 @@ exports.Client.prototype.cacheServer = function(id, cb, members) {
  * @param {String} callback.token o token recebido ao fazer login
  */
 exports.Client.prototype.login = function(email, password, callback, noCache) {
+	globalLoginTime = Date.now();
+
+	this.debug("login solicitado em " + globalLoginTime);
+
 	var self = this;
 	callback = callback || function() {};
 
@@ -315,7 +323,17 @@ exports.Client.prototype.login = function(email, password, callback, noCache) {
 	self.connectWebsocket();
 
 	if (this.tokenManager.exists(email) && !noCache) {
-		done(this.tokenManager.getToken(email, password));
+		var token = this.tokenManager.getToken(email, password);
+
+		if (!token.match(/[^\w.-]+/g)) {
+			done(this.tokenManager.getToken(email, password));
+
+			self.debug("token carregado de caches em " + tp(globalLoginTime));
+
+			return;
+		} else {
+			self.debug("ocorreu um erro ao obter o token das caches, utilizando a autenticação padrão...");
+		}
 
 		return;
 	}
@@ -330,16 +348,21 @@ exports.Client.prototype.login = function(email, password, callback, noCache) {
 			}]);
 
 			self.websocket.close();
+
+			self.debug("falha ao iniciar sessão em " + tp(globalLoginTime));
 		} else {
 			if (!noCache) {
 				self.tokenManager.addToken(email, token, password);
 			}
+
+			self.debug("token carregado de servidores de autenticação em " + tp(globalLoginTime));
 
 			done(token);
 		}
 	});
 
 	function done(token) {
+		self.debug("utilizando o token " + token);
 		self.token = token;
 		self.websocket.sendData();
 		self.loggedIn = true;
@@ -393,13 +416,9 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 		switch (dat.op) {
 			case 0:
 				if (dat.t === "READY") {
+					self.debug("pacote ready obtido");
+
 					var data = dat.d;
-
-					webself = this;
-
-					setInterval(function() {
-						webself.keepAlive.apply(webself);
-					}, data.heartbeat_interval);
 
 					self.user = new User(data.user);
 
@@ -422,9 +441,14 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 							if (cached === toCache) {
 								self.ready = true;
 								self.triggerEvent("ready");
+								self.debug("ready alertado");
 							}
 						});
 					}
+
+					setInterval(function() {
+						webself.keepAlive.apply(webself)
+					}, data.heartbeat_interval);
 				} else if (dat.t === "MESSAGE_CREATE") {
 					var data = dat.d;
 					var channel = self.getChannel(data.channel_id);
@@ -544,6 +568,8 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 	}
 
 	this.websocket.onopen = function() {
+		self.debug("conexão websocket aberta");
+
 		this.sendData("onopen");
 	}
 
@@ -563,6 +589,10 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 			this.sendPacket(connDat);
 		}
 	}
+}
+
+exports.Client.prototype.debug = function(msg) {
+	this.triggerEvent("debug", ["[SL " + tp(globalLoginTime) + "]    " + msg]);
 }
 
 /**

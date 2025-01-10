@@ -33,6 +33,10 @@ console.log("inicializando tudo...");
 var time = Date.now();
 
 // quando o bot estiver pronto, output no console
+bot.on("debug", function(m) {
+    console.log("debug", m);
+});
+
 bot.on("ready", function() {
     console.timeEnd("botbenchmark");
 });

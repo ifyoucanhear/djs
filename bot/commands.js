@@ -242,7 +242,7 @@ Commands["avatar"] = {
     oplevel: 0,
 
     fn: function(bot, params, message) {
-        var user = getUser(message, params);
+        var user = getUser(message, params, bot);
 
         if (!user.avatar) {
             bot.sendMessage(message.channel, user.mention() + "não possui um avatar...");
@@ -427,13 +427,19 @@ function setAuthLevel(user, level) {
 	Authority.setLevel(user, level);
 }
 
-function getUser(message, params) {
+function getUser(message, params, bot) {
 	var usr = false;
 
 	if (!message.isPM()) {
 		var wantedUser = getKey(params, "user", false) || getKey(params, "u", false);
 
 		if (wantedUser) {
+            if (bot) {
+                console.log(bot.getUsers().length());
+
+                return bot.getUsers().filter("username", wantedUser);
+            }
+            
 			usr = message.channel.server.members.filter(Discord.isUserID(wantedUser) ? "id" : "username", wantedUser, true);
 		}
 	}
