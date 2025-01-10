@@ -697,14 +697,14 @@ exports.Client.prototype.leaveServer = function(server, callback) {
  * 
  * @method createInvite
  */
-exports.Client.prototype.createInvite = function( channel, options, callback ) {
+exports.Client.prototype.createInvite = function(channel, options, callback) {
 	var self = this;
 	var options = options || {};
 
 	// callback não é necessário para esta função
 	callback = callback || function() {};
 
-	if ( channel instanceof Server ) {
+	if (channel instanceof Server) {
 		channel = channel.getDefaultChannel();
 	}
 
@@ -713,29 +713,31 @@ exports.Client.prototype.createInvite = function( channel, options, callback ) {
 	options.temporary = options.temporary || false;
 	options.xkcdpass = options.xkcd || false;
 
-	Internal.XHR.createInvite( self.token, channel.id, options, function( err, data ) {
-		if ( err ) {
-			callback( err );
+	Internal.XHR.createInvite(self.token, channel.id, options, function(err, data) {
+		if (err) {
+			callback(err);
 		} else {
-			callback( null, new Invite( data ) );
+			callback(null, new Invite(data));
 		}
-	} );
+	});
 }
 
-exports.Client.prototype.startPM = function( user, callback ) {
+exports.Client.prototype.startPM = function(user, callback) {
 	var self = this;
 
 	callback = callback || function() {};
 
-	Internal.XHR.startPM( self.token, self.user.id, user.id, function( err, data ) {
-		if ( err ) {
-			callback( err );
+	Internal.XHR.startPM(self.token, self.user.id, user.id, function(err, data) {
+		if (err) {
+			callback(err);
 		} else {
-			var channel = new PMChannel( data.recipient, data.id );
-			self.PMList.add( channel );
-			callback( null, channel );
+			var channel = new PMChannel(data.recipient, data.id);
+
+			self.PMList.add(channel);
+
+			callback(null, channel);
 		}
-	} );
+	});
 }
 
 /**
@@ -796,27 +798,27 @@ exports.Client.prototype.sendMessage = function(destination, toSend, callback, o
 	function resolveChannel(destination, self) {
 		var channel_id = false;
 
-		if ( destination instanceof Server ) {
+		if (destination instanceof Server) {
 			channel_id = destination.getDefaultChannel().id;
-		} else if ( destination instanceof Channel ) {
+		} else if (destination instanceof Channel) {
 			channel_id = destination.id;
-		} else if ( destination instanceof PMChannel ) {
+		} else if (destination instanceof PMChannel) {
 			channel_id = destination.id;
-		} else if ( destination instanceof Message ) {
+		} else if (destination instanceof Message) {
 			channel_id = destination.channel.id;
-		} else if ( destination instanceof User ) {
-			var destId = self.PMList.deepFilter( [ "user", "id" ], destination.id, true );
+		} else if (destination instanceof User) {
+			var destId = self.PMList.deepFilter(["user", "id"], destination.id, true);
 
 			if (destId) {
 				channel_id = destId.id;
 			} else {
 				// inicia um pm e depois faça uso disso
 
-				self.startPM( destination, function( err, channel ) {
+				self.startPM(destination, function(err, channel) {
 					if (err) {
 						callback(err);
 					} else {
-						self.PMList.add(new PMChannel(channel.recipient, channel.id));
+						self.PMList.add(new PMChannel(channel.user, channel.id));
 
 						setChannId(channel.id);
 						
@@ -833,34 +835,37 @@ exports.Client.prototype.sendMessage = function(destination, toSend, callback, o
 		return channel_id;
 	}
 
-	function resolveMessage( toSend ) {
+	function resolveMessage(toSend) {
 		var message;
-		if ( typeof toSend === "string" || toSend instanceof String )
+
+		if (typeof toSend === "string" || toSend instanceof String)
 			message = toSend;
-		else if ( toSend instanceof Array )
-			message = toSend.join( "\n" );
+		else if (toSend instanceof Array)
+			message = toSend.join("\n");
 		else if ( toSend instanceof Message )
 			message = toSend.content;
 		else
 			message = toSend;
-		return message.substring( 0, 2000 );
+		return message.substring(0, 2000);
 	}
 
-	function resolveMentions( message, mentionsOpt ) {
+	function resolveMentions(message, mentionsOpt ) {
 		var mentions = [];
-		if ( mentionsOpt === false ) {} else if ( mentionsOpt || mentionsOpt === "auto" || mentionsOpt == null || mentionsOpt == undefined ) {
-			for ( mention of( message.match( /<@[^>]*>/g ) || [] ) ) {
-				mentions.push( mention.substring( 2, mention.length - 1 ) );
+
+		if (mentionsOpt === false) {} else if (mentionsOpt || mentionsOpt === "auto" || mentionsOpt == null || mentionsOpt == undefined) {
+			for (mention of(message.match(/<@[^>]*>/g) || [])) {
+				mentions.push(mention.substring(2, mention.length - 1));
 			}
-		} else if ( mentionsOpt instanceof Array ) {
-			for ( mention of mentionsOpt ) {
-				if ( mention instanceof User ) {
-					mentions.push( mention.id );
+		} else if (mentionsOpt instanceof Array) {
+			for (mention of mentionsOpt) {
+				if (mention instanceof User) {
+					mentions.push(mention.id);
 				} else {
-					mentions.push( mention );
+					mentions.push(mention);
 				}
 			}
 		}
+
 		return mentions;
 	}
 }

@@ -6,7 +6,7 @@ the aim of this api is to make it *really* simple to start developing your bots.
 
 new update features **big speed boosts** (everything cached and sorted with around 1 second of calling the login function) upon connection and allows editing of messages.
 
-## esse módulo ainda está em alpha
+## esse módulo ainda está em alpha - especialmente as novas versões
 
 this node module is still in alpha, and some methods and functions may change or completely disappear
 
