@@ -176,6 +176,19 @@ exports.Client.prototype.getChannel = function(id) {
 }
 
 /**
+ * retorna um canal que corresponde ao nome fornecido ou falso se não for encontrado. retornará false se o canal não estiver em cache ou não estiver disponível
+ * 
+ * @method getChannelByName
+ * 
+ * @param {String/Number} name o nome do canal
+ * 
+ * @return {Server} o canal que coincida com o nome
+ */
+exports.Client.prototype.getChannelByName = function(name) {
+	return this.getChannels().filter("name", name, true);
+}
+
+/**
  * alerta um evento .on()
  * 
  * @param {String} event o evento que será alertado
@@ -778,15 +791,22 @@ exports.Client.prototype.startPM = function(user, callback) {
  * 
  * @method sendMessage
  */
-exports.Client.prototype.sendMessage = function(destination, toSend, callback, options) {
+exports.Client.prototype.sendFile = function(destination, toSend, fileName, callback, options) {
+	this.sendMessage(destination, toSend, callback, options, fileName);
+}
+
+exports.Client.prototype.sendMessage = function(destination, toSend, callback, options, fileName) {
 	options = options || {};
 	callback = callback || function() {};
 
 	var channel_id, message, mentions, self = this;
 
 	channel_id = resolveChannel(destination, self);
-	message = resolveMessage(toSend);
-	mentions = resolveMentions(message, options.mention);
+	
+	if (!fileName) {
+		message = resolveMessage(toSend);
+		mentions = resolveMentions(message, options.mention);
+	}
 
 	if (channel_id) {
 		send();
@@ -795,6 +815,14 @@ exports.Client.prototype.sendMessage = function(destination, toSend, callback, o
 	}
 
 	function send() {
+		if (fileName) {
+			Internal.XHR.sendFile(self.token, channel_id, toSend, fileName, function(err) {
+				callback(err);
+			});
+
+			return;
+		}
+
 		Internal.XHR.sendMessage(self.token, channel_id, {
 			content: message,
 			mentions: mentions
@@ -1040,6 +1068,10 @@ exports.Client.prototype.getChannel = function(id) {
 	var normalChan = this.getChannels().filter("id", id, true);
 
 	return normalChan || this.PMList.filter("id", id, true);
+}
+
+exports.Client.prototype.getChannelByName = function(name) {
+	return this.getChannels().filter("name", name, true);
 }
 
 exports.Client.prototype.getUser = function(id) {

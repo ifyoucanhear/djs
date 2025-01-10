@@ -265,6 +265,19 @@ Commands["setusername"] = {
     }
 }
 
+Commands["cat"] = {
+    oplevel: 0,
+
+    fn: function(bot, params, message) {
+        var http = require("http");
+        var request = require("request");
+
+        bot.sendFile(message, request("http://thewallpaperhost.com/wp-content/uploads/2014/12/cool-hd-wallpaper.jpg"), "cat.jpg", function(err) {
+            bot.reply(message, err);
+        });
+    }
+}
+
 Commands["icon"] = {
     oplevel: 0,
     
