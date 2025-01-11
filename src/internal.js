@@ -1,5 +1,3 @@
-"use strict";
-
 var request = require("superagent");
 var Endpoints = require("./endpoints.js");
 

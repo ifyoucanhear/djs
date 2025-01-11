@@ -1,8 +1,7 @@
 var List = require("./list.js").List;
 
 exports.Channel = function(name, server, type, id, isPrivate) {
-    if (!type) {
-        // não há um segundo argumento
+    if (!type) { // não há um segundo argumento
         var channel = name;
 
         name = channel.name;
@@ -11,15 +10,14 @@ exports.Channel = function(name, server, type, id, isPrivate) {
         id = channel.id;
         isPrivate = channel.is_private;
     }
-    
+
     this.name = name;
     this.server = server;
     this.type = type;
     this.id = id;
     this.isPrivate = isPrivate;
-
     this.messages = new List("id", 5000);
-};
+}
 
 exports.Channel.equals = function(otherChannel) {
     if (otherChannel.id === this.id) {
@@ -27,4 +25,4 @@ exports.Channel.equals = function(otherChannel) {
     } else {
         return false;
     }
-};
+}

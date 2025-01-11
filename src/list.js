@@ -4,8 +4,6 @@
  * 
  * @class List
  */
-"use strict";
-
 exports.List = function(discriminator, cap) {
     /**
      * o que usar para distinguir duplicatas

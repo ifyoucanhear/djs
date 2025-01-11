@@ -1,5 +1,3 @@
-"use strict";
-
 var User = require("./user.js").User;
 var List = require("./list.js").List;
 

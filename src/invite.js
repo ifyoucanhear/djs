@@ -1,5 +1,3 @@
-"use strict";
-
 var User = require("./user.js").User;
 
 exports.Invite = function(json) {

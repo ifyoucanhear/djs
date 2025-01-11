@@ -1,5 +1,3 @@
-"use strict";
-
 exports.User = function(username, id, discriminator, avatar) {
     if (!id) { // não há um segundo argumento
         var user = username;

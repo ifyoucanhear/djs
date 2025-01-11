@@ -1,0 +1,269 @@
+// variáveis disponíveis que podem ser utilizados dentro de strings
+//
+// ${workspaceroot}: a pasta root do time
+// ${file}: o arquivo aberto atual
+// ${filebasename}: a basename do arquivo aberto atual
+// ${filedirname}: o nome do diretório do arquivo aberto atual
+// ${fileextname}: a extensão de arquivo aberto atual
+// ${cwd}: o diretório de trabalho atual do processo criado
+
+// um runner de task que chama um compilador typescript (tsc) e
+// compila o programa helloworld.ts
+{
+    "version": "0.1.0",
+
+    "command": "babel",
+
+    "isShellCommand": true,
+
+    "tasks": [
+        {
+            "taskName": "watch",
+            "suppressTaskName": true,
+            "isBuildCommand": true,
+            "isWatching": true,
+
+            "args": [
+                "src", "--out-dir", "lib", "-w"
+            ]
+        }
+    ]
+}
+
+// um runner de task que chama um compilador typescript (tsc) e
+// compila baseado no arquivo tsconfig.json presente no root
+// da pasta aberta no vscode
+/*
+{
+    "version": "0.1.0",
+
+    // o comando é um tsc. assumindo que o tsc já foi instalado
+    // utilizando o comando `npm install -g typescript`
+    "command": "tsc",
+
+    // o comando é um script shell
+    "isShellCommand": true,
+
+    // mostra a janela de output apenas se erros desconhecidos ocorrerem
+    "showOutput": "silent",
+
+    // fala para o compilador tsc para utilizar o tsconfig.json da pasta aberta
+    "args": ["-p", "."],
+
+    // utilizar o problem matcher tsc padrão para encontrar problemas
+    // compilados no output
+    "problemMatcher": "$tsc"
+}
+*/
+
+// uma configuração de um runner de task do gulp
+/*
+{
+    "version": "0.1.0",
+
+    "command": "gulp",
+
+    "isShellCommand": true,
+
+    "tasks": [
+        {
+            "taskName": "less",
+
+            // comando build padrão
+            "isBuildCommand": true,
+
+            // mostra a janela de output caso ocorra alguns erros desconhecidos
+            "showOutput": "silent",
+
+            // utiliza o problem matcher padrão
+            "problemMatcher": "$lessCompile"
+        }
+    ]
+}
+*/
+
+// retirar comentários da sessão abaixo para utilizar o gulp no
+// modo de espectador que compila menos arquivos. a task do gulp
+// printa "[hh:mm:ss] inicializando 'clean-styles'" no console
+//
+// quando um css é existente, arquivos são deletados e
+// "[hh:mm:ss] finalizado 'styles'" quando a compilação foi finalizada
+/*
+{
+    "version": "0.1.0",
+
+	"command": "gulp",
+
+	"isShellCommand": true,
+
+    "tasks": [
+        {
+            "taskName": "watch-less",
+
+            // comando build padrão
+            "isBuildCommand": true,
+
+            // mostra a janela de output caso ocorra erros desconhecidos
+            "showOutput": "silent",
+
+            // task está rodando no modo espectador
+            "isWatching": true,
+
+            "problemMatcher": {
+				// utiliza o correspondente padrão com menos problemas de compilação como base
+				"base": "$lessCompile",
+
+				// uma expressão regular que sinaliza que uma tarefa monitorada começa a ser executada (geralmente acionada por meio de observação de arquivo)
+				"watchedTaskBeginsRegExp": "^\\[\\d+:\\d+:\\d+\\] Starting 'clean-styles'\\.\\.\\.$",
+				
+                // uma expressão regular sinalizando que uma tarefa monitorada termina a execução
+				"watchedTaskEndsRegExp": "^\\[\\d+:\\d+:\\d+\\] Finished 'styles' after \\d+"
+			}
+        }
+    ]
+}
+*/
+
+// retirar comentários abaixo caso utilizar o jake para construir
+// o espaço de trabalho clonado de: https://github.com/Microsoft/TypeScript.git
+/*
+{
+	"version": "0.1.0",
+
+	// runner de tasks é o jake
+	"command": "jake",
+
+	// precisa ser executado em shell/cmd
+	"isShellCommand": true,
+
+	"showOutput": "silent",
+
+	"tasks": [
+		{
+			// o comando de construção ts é local
+			"taskName": "local",
+
+			// comando de compilação padrão
+			"isBuildCommand": true,
+
+			// mostra a janela de output apenas se ocorrerem erros não reconhecidos
+			"showOutput": "silent",
+
+			// utiliza a correspondência de problemas de saída typescript redefinida
+			"problemMatcher": [
+				"$tsc"
+			]
+		}
+	]
+}
+*/
+
+// retirar comentários abaixo para utilizar o msbuild e gerar problemas
+// pra csc, cpp, tsc e vb. a configuração assume que o msbuild está
+// disponível no path e a solução do arquivo existe no root da pasta
+/*
+{
+	"version": "0.1.0",
+
+	"command": "msbuild",
+
+	"args": [
+		// solicita que o msbuild gere caminhos completos para nomes de arquivos
+		"/property:GenerateFullPaths=true"
+	],
+
+	"taskSelector": "/t:",
+	"showOutput": "silent",
+
+	"tasks": [
+		{
+			"taskName": "build",
+
+			// mostra a janela de output apenas se ocorrerem erros desconhecidos
+			"showOutput": "silent",
+            
+			// utiliza o padrão do compilador ms padrão para detectar erros,
+            // avisos e informações na saída
+			"problemMatcher": "$msCompile"
+		}
+	]
+}
+*/
+
+// retirar comentários abaixo para utilizar o msbuild, que compila o typescript
+// e menos arquivos em si
+/*
+{
+	"version": "0.1.0",
+
+	"command": "msbuild",
+
+	"args": [
+		// solicita ao msbuild para gerar caminhos completos para nomes de arquivos
+		"/property:GenerateFullPaths=true"
+	],
+
+	"taskSelector": "/t:",
+	"showOutput": "silent",
+
+	"tasks": [
+		{
+			"taskName": "build",
+
+			// mostra a janela de output apenas se ocorrerem erros desconhecidos
+			"showOutput": "silent",
+
+			// utiliza o padrão do compilador ms padrão para detectar erros,
+            // avisos e informações na saída
+			"problemMatcher": [
+				"$msCompile",
+				"$lessCompile"
+			]
+		}
+	]
+}
+*/
+
+// um exemplo de executor de tarefas que define um problemmatcher embutido
+// em vez de usar um predefinido
+/*
+{
+	"version": "0.1.0",
+
+	"command": "tsc",
+	"isShellCommand": true,
+	"args": ["HelloWorld.ts"],
+	"showOutput": "silent",
+
+	"problemMatcher": {
+		// o problema pertence ao serviço de linguagem typescript. certifique-se de que
+        // os problemas sejam mesclados com problemas produzidos pelo serviço de
+        // linguagem do próprio visual studio em si
+		"owner": "typescript",
+
+		// o nome do arquivo para problemas relatados é relativo ao diretório de trabalho atual
+		"fileLocation": ["relative", "${cwd}"],
+
+		// o padrão real para corresponder aos problemas na saída
+		"pattern": {
+			// a expressão regular. corresponde a HelloWorld.ts(2,10): erro ts2339: a propriedade 'logg' não existe no tipo 'console'
+			"regexp": "^([^\\s].*)\\((\\d+|\\d+,\\d+|\\d+,\\d+,\\d+,\\d+)\\):\\s+(error|warning|info)\\s+(TS\\d+)\\s*:\\s*(.*)$",
+
+			// o grupo de correspondência que indica o arquivo que contém o problema
+			"file": 1,
+
+			// o grupo de correspondência que indica o local do problema
+			"location": 2,
+
+			// o grupo de correspondência que indica a gravidade do problema. pode ser omitido
+			"severity": 3,
+
+			// o grupo de correspondência que denota o código do problema. pode ser omitido
+			"code": 4,
+
+			// o grupo de correspondência que denota a mensagem do problema
+			"message": 5
+		}
+	}
+}
+*/
