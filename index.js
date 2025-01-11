@@ -11,7 +11,8 @@ var WebSocket = require("ws");
 var Internal = require("./lib/internal.js").Internal;
 var TokenManager = require("./lib/TokenManager.js").TokenManager;
 
-var serverCreateRequests = [].globalLoginTime = Date.now();
+var serverCreateRequests = [],
+	globalLoginTime = Date.now();
 
 function tp(time) {
 	return Date.now() - time;
@@ -41,17 +42,15 @@ exports.PMChannel = PMChannel;
  * @param {Object} [options] um objeto contendo opções configuráveis
  * @param {Number} [options.maxmessage=5000] a quantidade máxima de mensagens a ser armazenada por canal
  */
-
-exports.Client = function(options) {
+exports.Client = function(shouldUseTokenManager) {
 	/**
 	 * contém as opções do client
 	 * 
 	 * @attribute options
 	 * @type {Object}
 	 */
-	this.options = options || {};
-	this.options.maxmessage = 5000;
-	this.tokenManager = new TokenManager("./", "tokencache.json");
+	if (shouldUseTokenManager)
+		this.tokenManager = new TokenManager("./", "tokencache.json");
 
 	/**
 	 * contém o token utilizado para autorizar solicitações http e conexão websocket
@@ -335,20 +334,20 @@ exports.Client.prototype.login = function(email, password, callback, noCache) {
 
 	self.connectWebsocket();
 
-	if (this.tokenManager.exists(email) && !noCache) {
-		var token = this.tokenManager.getToken(email, password);
-
-		if (!token.match(/[^\w.-]+/g)) {
-			done(this.tokenManager.getToken(email, password));
-
-			self.debug("token carregado de caches em " + tp(globalLoginTime));
-
-			return;
-		} else {
-			self.debug("ocorreu um erro ao obter o token das caches, utilizando a autenticação padrão...");
+	if (this.tokenManager) {
+		if (this.tokenManager.exists(email) && !noCache) {
+			var token = this.tokenManager.getToken(email, password);
+	
+			if (!token.match(/[^\w.-]+/g)) {
+				done(this.tokenManager.getToken(email, password));
+	
+				self.debug("token carregado de caches em " + tp(globalLoginTime));
+	
+				return;
+			} else {
+				self.debug("ocorreu um erro ao obter o token das caches, utilizando a autenticação padrão...");
+			}
 		}
-
-		return;
 	}
 
 	var time = Date.now();
@@ -589,6 +588,24 @@ exports.Client.prototype.connectWebsocket = function(cb) {
 
 						self.triggerEvent("userupdate", [self.user, newUsr]);
 						self.user = newUsr;
+					}
+				} else if (dat.t === "GUILD_MEMBER_ADD") {
+					var srv = self.getServer(dat.d.guild_id);
+
+					if (srv) {
+						var usr = new User(dat.d.user);
+
+						srv.members.add(usr);
+						self.triggerEvent("serverMemberAdd", [usr]);
+					}
+				} else if (dat.t === "GUILD_MEMBER_REMOVE") {
+					var srv = self.getServer(dat.d.guild_id);
+
+					if (srv) {
+						var usr = new User(dat.d.user);
+
+						srv.members.removeElement(usr);
+						self.triggerEvent("serverMemberRemove", [usr]);
 					}
 				}
 

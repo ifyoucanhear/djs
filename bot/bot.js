@@ -64,7 +64,7 @@ bot.on("messageDelete", function(message) {
 });
 
 bot.on("messageUpdate", function(former, edit) {
-    if (former) {
+    /* if (former) {
         if (former.author.equals(this.user) || former.content === edit.content) {
             return;
         }
@@ -73,7 +73,7 @@ bot.on("messageUpdate", function(former, edit) {
         var channel = former.channel;
 
         bot.sendMessage(channel, "**" + former.author.username + "** (editar da mensagem " + seconds + " segundos atrás):\n    " + former.content);
-    }
+    } */
 });
 
 bot.on("message", function(message) {
