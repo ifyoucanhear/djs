@@ -1,34 +1,30 @@
-exports.User = function(username, id, discriminator, avatar) {
-    if (!id) { // não há um segundo argumento
-        var user = username;
-
-        username = user.username;
-        id = user.id;
-        discriminator = user.discriminator;
-        avatar = user.avatar;
+class User {
+    constructor(data) {
+        this.username = data.username;
+		this.discriminator = data.discriminator;
+		this.id = data.id;
+		this.avatar = data.avatar;
     }
 
-    this.username = username;
-    this.discriminator = discriminator;
-    this.id = id;
-    this.avatar = avatar;
-};
+    // acessar utilizando user.avatarurl;
+    get avatarURL() {
+        if (!this.avatar)
+            return null;
 
-exports.User.prototype.getAvatarURL = function() {
-    if (!this.avatar)
-        return false;
+        return `https://discordapp.com/api/users/${this.id}/avatars/${this.avatar}.jpg`;
+    }
 
-    return "https://discordapp.com/api/users/" + this.id + "/avatars/" + this.avatar + ".jpg";
-};
+    mention() {
+        return `<@${this.id}>`;
+    }
 
-exports.User.prototype.mention = function() {
-    return "<@" + this.id + ">";
-};
+    toString() {
+        return this.mention();
+    }
 
-exports.User.prototype.equals = function(otherUser) {
-    return otherUser.id === this.id;
-};
+    equals(object) {
+        return object.id === this.id;
+    }
+}
 
-exports.User.prototype.equalsStrict = function(otherUser) {
-    return this.username === otherUser.username && this.discriminator === otherUser.discriminator && this.id === otherUser.id && this.avatar === otherUser.avatar;
-};
+module.exports = User;

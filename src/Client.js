@@ -1,5 +1,6 @@
 // módulos discord.js
 var Endpoints = require("./Endpoints.js");
+var User = require("./User.js");
 
 // módulos node
 var request = require("superagent");
@@ -33,17 +34,28 @@ class Client {
          * 3 - pronto
          * 4 - desconectado
          */
+        this.userCache = new Map();
+		this.channelCache = new Map();
+		this.serverCache = new Map();
     }
 
     get ready() {
         return this.state === 3;
     }
 
-    debug(message) {}
+    // debug padrão
+    debug(message) {
+        console.log(message);
+    }
+
+    // trigger padrão
+    trigger(event) {}
 
     // login padrão
     login(email = "test@test.com", password = "password123456", callback = function() {}) {
         var self = this;
+
+        this.createws();
 
         if (this.state === 0 || this.state === 4) {
             this.state = 1; // configura o estado para iniciar sessão
@@ -56,6 +68,8 @@ class Client {
                 }).end(function(err, res) {
                     if (err) {
                         self.state = 4; // configura o estado para desconectado
+                        self.trigger("disconnected");
+						self.websocket.close();
 
                         callback(err);
                     } else {
@@ -79,10 +93,56 @@ class Client {
 
         this.websocket = new WebSocket(Endpoints.WEBSOCKET_HUB);
 
+        // abrir
         this.websocket.onopen = function() {
             self.trySendConnData(); // tentantiva de conexão
         };
+
+        // fechar
+		this.websocket.onclose = function() {
+			self.trigger("disconnected");
+		}
+
+        // mensagem
+        this.websocket.onmessage = function(e) {
+			var dat = false, data = false;
+
+			try {
+				dat = JSON.parse(e.data);
+
+				data = dat.d;
+			} catch (err) {
+				self.trigger("error", err, e);
+
+				return;
+			}
+			
+			// mensagem válida
+			switch (dat.t) {
+				case "READY":
+					self.debug("pacote pronto recebido");
+					
+					self.user = self.addUser(data.user);
+					
+					break;
+
+				default:
+					self.debug("pacote desconhecido recebido");
+					self.trigger("unknown", dat);
+
+					break;
+			}
+		}
     }
+
+    // adduser padrão
+    addUser(data) {
+		if (!this.userCache.has(data.id)) {
+			this.userCache.set(data.id, new User(data));
+		}
+
+		return this.userCache.get(data.id);
+	}
 
     // trysendconndata padrão
     trySendConnData() {
@@ -111,3 +171,5 @@ class Client {
         }
     }
 }
+
+module.exports = Client;
