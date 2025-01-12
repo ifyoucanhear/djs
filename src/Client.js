@@ -57,6 +57,12 @@ class Client {
 		return this.userCache;
 	}
 
+	sendPacket(JSONObject) {
+		if (this.websocket.readyState === 1) {
+			this.websocket.send(JSON.stringify(JSONObject));
+		}
+	}
+
     // debug padrão
     debug(message) {
         console.log(message);
@@ -68,6 +74,15 @@ class Client {
 	
 	off(event, fn){
 		this.events.delete(event);
+	}
+
+	keepAlive(){
+		this.debug("keep alive alertado");
+
+		this.sendPacket({
+			op: 1,
+			d: Date.now()
+		});
 	}
 
     // trigger padrão
@@ -164,6 +179,10 @@ class Client {
 
 					self.trigger("ready");
 					self.debug(`foram armazenados ${self.serverCache.size} servidores, ${self.channelCache.size} canais e ${self.userCache.size} usuários.`);
+
+					setInterval(function() {
+                        self.keepAlive.apply(self);
+                    }, data.heartbeat_interval);
 					
 					break;
 
