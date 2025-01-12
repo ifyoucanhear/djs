@@ -25,3 +25,4 @@ build/Release
 
 # diretório de dependências
 node_modules
+test/auth.json
