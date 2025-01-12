@@ -1,38 +1,63 @@
-var User = require("./user.js").User;
-var List = require("./list.js").List;
+class Server {
+    constructor(data, client) {
+        this.client = client;
+        this.region = data.region;
+        this.ownerID = data.owner_id;
+        this.name = data.name;
+        this.id = data.id;
+        this.members = new Map();
+        this.channels = new Map();
+        this.icon = data.icon;
+        this.afkTimeout = data.afk_timeout;
+        this.afkChannelId = data.afk_channel_id;
 
-exports.Server = function(data) {
-    this.region = data.region;
-    this.ownerID = data.owner_id;
-    this.name = data.name;
-    this.id = data.id;
-    this.members = new Map();
-    this.channels = new Map();
-    this.icon = data.icon;
-    this.afkTimeout = data.afk_timeout;
-    this.afkChannelId = data.afk_channel_id;
+        for (var member of data.members) {
+            this.members.add(client.addUser(member));
+        }
 
-    for (var x in members) {
-        var member = members[x].user;
-
-        this.members.add(new User(member));
+        for (var channel of data.channels) {
+            this.channels.add(client.addChannel(channel));
+        }
     }
-};
 
-exports.Server.prototype.getIconURL = function() {
-    if (!this.icon)
-        return false;
+    get iconURL() {
+		if (!this.icon)
+			return null;
 
-    return "https://discordapp.com/api/guilds/" + this.id + "/icons/" + this.icon + ".jpg";
-};
+		return `https://discordapp.com/api/guilds/${this.id}/icons/${this.icon}.jpg`;
+	}
 
-exports.Server.prototype.getAFKChannel = function() {
-    if (!this.afkChannelId)
-        return false;
+	get afkChannel() {
+		if (!this.afkChannelId)
+			return false;
 
-    return this.channels.filter("id", this.afkChannelId, true);
-};
+		return this.getChannel("id", this.afkChannelId);
+	}
 
-exports.Server.prototype.getDefaultChannel = function() {
-    return this.channels.filter("name", "general", true);
-};
+	get defaultChannel() {
+		return this.getChannel("name", "general");
+	}
+
+    // get/set
+    getChannel(key, value) {
+		for (var channel of this.channels) {
+			if (channel[key] === value) {
+				return channel;
+			}
+		}
+
+		return null;
+	}
+	
+	getMember(key, value){
+		for (var member of this.members) {
+			if (member[key] === value) {
+				return member;
+			}
+		}
+
+		return null;
+	}
+}
+
+module.exports = Server;
