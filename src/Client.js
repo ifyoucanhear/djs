@@ -1,6 +1,8 @@
 // módulos discord.js
 var Endpoints = require("./Endpoints.js");
 var User = require("./User.js");
+var Server = require("./Server.js");
+var Channel = require("./Channel.js");
 
 // módulos node
 var request = require("superagent");
@@ -43,13 +45,45 @@ class Client {
         return this.state === 3;
     }
 
+    get servers() {
+		return this.serverCache;
+	}
+	
+	get channels() {
+		return this.channelCache;
+	}
+	
+	get users() {
+		return this.userCache;
+	}
+
     // debug padrão
     debug(message) {
         console.log(message);
     }
 
+    on(event, fn){
+		this.events.set(event, fn);
+	}
+	
+	off(event, fn){
+		this.events.delete(event);
+	}
+
     // trigger padrão
-    trigger(event) {}
+    trigger(event) {
+        var args = [];
+
+		for (var arg in arguments) {
+			args.push(arguments[arg]);
+		}
+
+		var evt = this.events.get(event);
+
+		if (evt) {
+			evt.apply(this, args.slice(1));
+		}
+    }
 
     // login padrão
     login(email = "test@test.com", password = "password123456", callback = function() {}) {
@@ -123,6 +157,13 @@ class Client {
 					self.debug("pacote pronto recebido");
 					
 					self.user = self.addUser(data.user);
+
+                    for (var _server of data.guilds) {
+						self.addServer(_server);
+					}
+
+					self.trigger("ready");
+					self.debug(`foram armazenados ${self.serverCache.size} servidores, ${self.channelCache.size} canais e ${self.userCache.size} usuários.`);
 					
 					break;
 
@@ -142,6 +183,63 @@ class Client {
 		}
 
 		return this.userCache.get(data.id);
+	}
+
+    // addchannel padrão
+    addChannel(data, serverId) {
+		if (!this.channelCache.has(data.id)) {
+			this.channelCache.set(data.id, new Channel(data, this.getServer("id", serverId)));
+		}
+
+		return this.channelCache.get(data.id);
+	}
+
+    // addserver padrão
+    addServer(data) {
+		if(!this.serverCache.has(data.id)) {
+			this.serverCache.set(data.id, new Server(data, this));
+		}
+
+		return this.serverCache.get(data.id);
+	}
+
+    // getuser padrão
+    getUser(key, value) {
+		for (var row of this.userCache) {
+			var obj = row[1];
+
+			if (obj[key] === value) {
+				return obj;
+			}
+		}
+
+		return null;
+	}
+
+    // getchannel padrão
+    getChannel(key, value) {
+		for (var row of this.channelCache) {
+			var obj = row[1];
+
+			if (obj[key] === value) {
+				return obj;
+			}
+		}
+
+		return null;
+	}
+
+	// getserver padrão
+	getServer(key, value) {
+		for (var row of this.serverCache) {
+			var obj = row[1];
+
+			if (obj[key] === value) {
+				return obj;
+			}
+		}
+        
+		return null;
 	}
 
     // trysendconndata padrão

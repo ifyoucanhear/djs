@@ -1,28 +1,19 @@
-var List = require("./list.js").List;
-
-exports.Channel = function(name, server, type, id, isPrivate) {
-    if (!type) { // não há um segundo argumento
-        var channel = name;
-
-        name = channel.name;
-        server = server;
-        type = channel.type;
-        id = channel.id;
-        isPrivate = channel.is_private;
+class Channel {
+    constructor(data, server) {
+        this.server = server;
+        this.name = data.name;
+        this.type = data.type;
+        this.id = data.id;
+        // this.isPrivate = this.isPrivate;
+    }
+    
+    get client() {
+        return this.server.client;
     }
 
-    this.name = name;
-    this.server = server;
-    this.type = type;
-    this.id = id;
-    this.isPrivate = isPrivate;
-    this.messages = new List("id", 5000);
-}
-
-exports.Channel.equals = function(otherChannel) {
-    if (otherChannel.id === this.id) {
-        return true;
-    } else {
-        return false;
+    equals(object) {
+        return object.id === this.id;
     }
 }
+
+module.exports = Channel;

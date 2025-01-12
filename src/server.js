@@ -12,11 +12,11 @@ class Server {
         this.afkChannelId = data.afk_channel_id;
 
         for (var member of data.members) {
-            this.members.add(client.addUser(member));
+            this.members.add(client.addUser(member.user));
         }
 
         for (var channel of data.channels) {
-            this.channels.add(client.addChannel(channel));
+            this.channels.add(client.addChannel(channel, this.id));
         }
     }
 
@@ -36,6 +36,10 @@ class Server {
 
 	get defaultChannel() {
 		return this.getChannel("name", "general");
+	}
+	
+	get owner() {
+		return this.client.getUser("id", this.ownerID);
 	}
 
     // get/set
